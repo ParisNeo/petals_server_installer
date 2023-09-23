@@ -409,7 +409,7 @@ class PetalsServiceMonitor(QMainWindow):
 
     # Create a function to generate and display responses
     def generate_response(self):
-        self.generate_button.setText("Generating")
+        self.generate_button.setText("Generating...")
         self.generate_button.setEnabled(False)
         self.input_prompt.setEnabled(False)
         QCoreApplication.processEvents()
