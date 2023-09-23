@@ -23,10 +23,10 @@ class PetalsServiceMonitor(QMainWindow):
         # Apply a global stylesheet for the main window
         main_window_stylesheet = (
             "QMainWindow {"
-            "background-color: darkgray;"
+            "background-color: #5e5757;"
             "}"
             "QPushButton {"
-            "background-color: #FFA500;"
+            "background-color: #6e4e15;"
             "border: none;"
             "color: white;"
             "padding: 10px;"
@@ -36,10 +36,26 @@ class PetalsServiceMonitor(QMainWindow):
             "background-color: #FF8C00;"
             "}"
             "QTextEdit, QLineEdit {"
-            "background-color: #EDEDED;"  # Slightly lighter background color for text inputs
+            "background-color: #9c9494;"
             "border: none;"
             "padding: 5px;"
             "border-radius: 5px;"
+            "}"
+            "QComboBox {"
+            "background-color: #9c9494;"  # Background color for combo box
+            "border: none;"
+            "padding: 5px;"
+            "border-radius: 5px;"
+            "}"
+            "QComboBox::drop-down {"
+            "subcontrol-origin: padding;"
+            "subcontrol-position: top right;"
+            "width: 20px;"
+            "border-left-width: 1px;"
+            "border-left-color: darkgray;"
+            "border-left-style: solid;"
+            "border-top-right-radius: 5px;"
+            "border-bottom-right-radius: 5px;"
             "}"
         )
         self.setStyleSheet(main_window_stylesheet)        
