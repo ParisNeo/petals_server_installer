@@ -45,9 +45,8 @@ class ServerInfoApp(QMainWindow):
         self.device_label = QLabel("Select Device:")
         self.device_combo = QComboBox()
         available_devices = self.detect_gpu_devices()
-        self.device_combo.addItem("auto")
         self.device_combo.addItem("cpu")
-        self.devices=["auto", "cpu"]
+        self.devices=["cpu"]
         for i, device in enumerate(available_devices):
             self.device_combo.addItem(device)
             self.devices.append(f"cuda:{i}")
