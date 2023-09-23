@@ -72,7 +72,7 @@ class ServerInfoApp(QMainWindow):
         self.start_server_button = QPushButton("Start Server")
         self.start_server_button.clicked.connect(self.start_server)
         left_layout.addWidget(self.start_server_button)
-        self.link_label = QLabel("<a href='https://example.com'>Visit Example Website</a>")
+        self.link_label = QLabel("<a href='https://health.petals.dev/'>View Network Health</a>")
         self.link_label.setTextFormat(Qt.RichText)
         self.link_label.setOpenExternalLinks(True)
         self.layout.addWidget(self.link_label)
