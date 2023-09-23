@@ -146,14 +146,17 @@ class PetalsServiceMonitor(QMainWindow):
         right_layout.addWidget(self.response_text)
 
         # QLineEdit for user input
+        input_layout = QHBoxLayout()
         self.input_prompt = QLineEdit()
         self.input_prompt.setPlaceholderText("Enter your prompt...")
-        right_layout.addWidget(self.input_prompt)        
+        self.input_prompt.returnPressed.connect(self.generate_response)
+        input_layout.addWidget(self.input_prompt)        
         # QPushButton to trigger response generation
         self.generate_button = QPushButton("Generate Response")
         self.generate_button.clicked.connect(self.generate_response)
-        right_layout.addWidget(self.generate_button)
+        input_layout.addWidget(self.generate_button)
         self.generate_button.setEnabled(False)
+        right_layout.addLayout(input_layout)
 
         # Use a QSplitter to arrange the left and right layouts
         splitter = QSplitter()
