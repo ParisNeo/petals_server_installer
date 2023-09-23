@@ -68,13 +68,18 @@ class ServerInfoApp(QMainWindow):
         left_layout.addWidget(self.num_blocks_label)
         left_layout.addWidget(self.num_blocks_entry)
         
+        # Add an "Update Usage" button
+        self.update_usage_button = QPushButton("Update Usage")
+        self.update_usage_button.clicked.connect(self.update_resource_info)
+        left_layout.addWidget(self.update_usage_button)        
+        
         self.start_server_button = QPushButton("Start Server")
         self.start_server_button.clicked.connect(self.start_server)
         left_layout.addWidget(self.start_server_button)
         self.link_label = QLabel("<a href='https://health.petals.dev/'>View Network Health</a>")
         self.link_label.setTextFormat(Qt.RichText)
         self.link_label.setOpenExternalLinks(True)
-        self.layout.addWidget(self.link_label)
+        left_layout.addWidget(self.link_label)
 
         self.resource_info_label = QLabel("Resource Usage:")
         self.resource_info = QTextEdit()
