@@ -16,6 +16,7 @@ class PetalsServiceMonitor(QMainWindow):
         super().__init__()
 
         self.config = self.get_config()
+        self.model = None
 
         self.setWindowTitle("Petals Service monitor UI")
         self.setGeometry(100, 100, 800, 500)
@@ -183,7 +184,7 @@ class PetalsServiceMonitor(QMainWindow):
         right_layout.addWidget(self.stdout_text)
 
         # QTextEdit for displaying model responses
-        self.stdout_label = QLabel("Test client:")
+        self.stdout_label = QLabel("Test client (Please wait till the server is fully loaded):")
         self.response_text = QTextEdit()
         self.response_text.setReadOnly(True)
         right_layout.addWidget(self.stdout_label)
@@ -368,10 +369,6 @@ class PetalsServiceMonitor(QMainWindow):
             
             # Force the application to execute the event loop
             QCoreApplication.processEvents()
-            # Connect to a distributed network hosting model layers
-            self.tokenizer = AutoTokenizer.from_pretrained(selected_model["name"])
-            self.model = AutoDistributedModelForCausalLM.from_pretrained(selected_model["name"])
-            self.generate_button.setEnabled(True)
 
     def update_resource_info(self):
         cpu_usage = psutil.cpu_percent()
@@ -409,9 +406,19 @@ class PetalsServiceMonitor(QMainWindow):
 
     # Create a function to generate and display responses
     def generate_response(self):
-        self.generate_button.setText("Generating...")
         self.generate_button.setEnabled(False)
         self.input_prompt.setEnabled(False)
+        if self.model is None:
+            self.generate_button.setText("Loading ...")
+            QCoreApplication.processEvents()
+            selected_model_name = self.model_combo.currentText()
+            selected_model = next((model for model in self.models if model["name"] == selected_model_name), None)
+            # Connect to a distributed network hosting model layers
+            self.tokenizer = AutoTokenizer.from_pretrained(selected_model["name"])
+            self.model = AutoDistributedModelForCausalLM.from_pretrained(selected_model["name"])
+
+
+        self.generate_button.setText("Generating...")
         QCoreApplication.processEvents()
         user_prompt = self.input_prompt.text()
         if user_prompt:
