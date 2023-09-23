@@ -160,7 +160,9 @@ class PetalsServiceMonitor(QMainWindow):
             'device': 0,
             'model_id': 0,
             'token': '',
-            'num_blocks': 4
+            'num_blocks': 4,
+            'generation_template':"{system_prompt}### User: {message}\n\n### Assistant:\n",
+            "system_prompt":"Act as an AI assistant that is always ready to provide useful information and assistance. Help the user acheive his task."
         }
 
         # Check if config.yaml exists in the current folder
@@ -215,12 +217,15 @@ class PetalsServiceMonitor(QMainWindow):
                 'device': device_id,
                 'model_id': selected_model_index,
                 'token': token,
-                'num_blocks': num_blocks
+                'num_blocks': num_blocks,
+                'generation_template':self.config["generation_template"],
+                "system_prompt":self.config["system_prompt"]                
             }
             config_path = Path(__file__).resolve().parent / 'config.yaml'
             with open(config_path, 'w') as config_file:
                 yaml.dump(config_data, config_file, default_flow_style=False)
             print("config.yaml file created.")
+            self.config = config_data
 
             if not node_name:
                 self.resource_info.setText("Node Name is required.")
@@ -306,8 +311,11 @@ class PetalsServiceMonitor(QMainWindow):
     def generate_response(self):
         user_prompt = self.input_prompt.text()
         if user_prompt:
+            # Replace placeholders in the template
+            formatted_message = self.config["generation_template"].format(system_prompt=self.config["system_prompt"] , message=user_prompt)
+
             # Run the model as if it were on your computer
-            inputs = self.tokenizer(user_prompt, return_tensors="pt")["input_ids"]
+            inputs = self.tokenizer(formatted_message, return_tensors="pt")["input_ids"]
             outputs = self.model.generate(inputs, max_new_tokens=5)
             generated_text = self.tokenizer.decode(outputs[0])
             self.response_text.setPlainText(generated_text)
