@@ -168,7 +168,7 @@ class ServerInfoApp(QMainWindow):
             command.extend(["--token", token])
 
         if device=="cpu":
-            command.extend(["--num_blocks", 4])
+            command.extend(["--num_blocks", '4'])
 
         print(f"Command : {command}")
         try:
