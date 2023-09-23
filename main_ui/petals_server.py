@@ -4,7 +4,7 @@ import psutil
 import yaml
 from pathlib import Path
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox, QTextEdit, QSplitter
-from PyQt5.QtGui import QTextCursor 
+from PyQt5.QtGui import QTextCursor, QTextOption 
 from PyQt5.QtCore import QProcess, Qt
 
 class PetalsServiceMonitor(QMainWindow):
@@ -93,7 +93,18 @@ class PetalsServiceMonitor(QMainWindow):
         self.stdout_label = QLabel("Server Output:")
         self.stdout_text = QTextEdit()
         self.stdout_text.setReadOnly(True)
+
+        # Disable text wrapping
         self.stdout_text.setLineWrapMode(QTextEdit.NoWrap)
+
+        # Enable horizontal scrollbar as needed
+        self.stdout_text.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self.stdout_text.setWordWrapMode(QTextOption.NoWrap)
+
+        # Add the QTextEdit to your layout
+        self.layout.addWidget(self.stdout_text)
+
+
         right_layout.addWidget(self.stdout_label)
         right_layout.addWidget(self.stdout_text)
 
