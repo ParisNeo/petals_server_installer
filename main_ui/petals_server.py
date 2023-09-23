@@ -9,6 +9,7 @@ from PyQt5.QtCore import QProcess, Qt
 
 from transformers import AutoTokenizer
 from petals import AutoDistributedModelForCausalLM
+from PyQt5.QtCore import QCoreApplication
 
 class PetalsServiceMonitor(QMainWindow):
     def __init__(self):
@@ -228,11 +229,6 @@ class PetalsServiceMonitor(QMainWindow):
             # Choose any model available at https://health.petals.dev
             self.model_name = "petals-team/StableBeluga2"  # This one is fine-tuned Llama 2 (70B)
 
-            # Connect to a distributed network hosting model layers
-            self.tokenizer = AutoTokenizer.from_pretrained(selected_model["name"])
-            self.model = AutoDistributedModelForCausalLM.from_pretrained(selected_model["name"])
-            self.generate_button.setEnabled(True)
-
             command = [
                 "python3",
                 "-m",
@@ -264,6 +260,13 @@ class PetalsServiceMonitor(QMainWindow):
                 self.update_resource_info()
             except Exception as e:
                 self.resource_info.setText(f"Error starting the server: {str(e)}")
+            
+            # Force the application to execute the event loop
+            QCoreApplication.processEvents()
+            # Connect to a distributed network hosting model layers
+            self.tokenizer = AutoTokenizer.from_pretrained(selected_model["name"])
+            self.model = AutoDistributedModelForCausalLM.from_pretrained(selected_model["name"])
+            self.generate_button.setEnabled(True)
 
     def update_resource_info(self):
         cpu_usage = psutil.cpu_percent()
