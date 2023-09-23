@@ -3,7 +3,7 @@ import subprocess
 import psutil
 import yaml
 from pathlib import Path
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox, QTextEdit, QSplitter
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox, QTextEdit, QSplitter,  QSpinBox
 from PyQt5.QtGui import QTextCursor, QTextOption, QFont
 from PyQt5.QtCore import QProcess, Qt
 
@@ -95,6 +95,15 @@ class PetalsServiceMonitor(QMainWindow):
         self.link_label.setOpenExternalLinks(True)
         left_layout.addWidget(self.link_label)
 
+        self.max_new_tokens_label = QLabel("Max new tokens for inference:")
+        # Create a QSpinBox widget
+        self.max_new_tokens_input = QSpinBox()
+        self.max_new_tokens_input.setMinimum(5)  # Set minimum value
+        self.max_new_tokens_input.setMaximum(8096)  # Set maximum value
+
+        left_layout.addWidget(self.resource_info_label)
+        left_layout.addWidget(self.max_new_tokens_input)
+
         self.resource_info_label = QLabel("Resource Usage:")
         self.resource_info = QTextEdit()
         self.resource_info.setReadOnly(True)
@@ -172,7 +181,8 @@ class PetalsServiceMonitor(QMainWindow):
             'token': '',
             'num_blocks': 4,
             'generation_template':"{system_prompt}### User: {message}\n\n### Assistant:\n",
-            "system_prompt":"Act as an AI assistant that is always ready to provide useful information and assistance. Help the user acheive his task."
+            "system_prompt":"Act as an AI assistant that is always ready to provide useful information and assistance. Help the user acheive his task.",
+            'max_new_tokens':1024
         }
 
         # Check if config.yaml exists in the current folder
@@ -199,6 +209,7 @@ class PetalsServiceMonitor(QMainWindow):
         device_id = self.device_combo.currentIndex()
         token = self.token_entry.text().strip()
         num_blocks = self.num_blocks_entry.text().strip()
+        max_new_tokens = self.max_new_tokens_input.value()
 
         config_data = {
             'node_name': node_name,
@@ -207,7 +218,8 @@ class PetalsServiceMonitor(QMainWindow):
             'token': token,
             'num_blocks': num_blocks,
             'generation_template':self.config["generation_template"],
-            "system_prompt":self.config["system_prompt"]                
+            'system_prompt':self.config["system_prompt"],
+            'max_new_tokens':max_new_tokens
         }
         config_path = Path(__file__).resolve().parent / 'config.yaml'
         with open(config_path, 'w') as config_file:
@@ -246,6 +258,7 @@ class PetalsServiceMonitor(QMainWindow):
             device = self.devices[device_id]
             token = self.token_entry.text().strip()
             num_blocks = self.num_blocks_entry.text().strip()
+            max_new_tokens = self.max_new_tokens_input.value()
 
             config_data = {
                 'node_name': node_name,
@@ -254,7 +267,8 @@ class PetalsServiceMonitor(QMainWindow):
                 'token': token,
                 'num_blocks': num_blocks,
                 'generation_template':self.config["generation_template"],
-                "system_prompt":self.config["system_prompt"]                
+                'system_prompt':self.config["system_prompt"],
+                'max_new_tokens':max_new_tokens         
             }
             config_path = Path(__file__).resolve().parent / 'config.yaml'
             with open(config_path, 'w') as config_file:
@@ -344,6 +358,9 @@ class PetalsServiceMonitor(QMainWindow):
 
     # Create a function to generate and display responses
     def generate_response(self):
+        self.generate_button.setText("Generating")
+        self.generate_button.setEnabled(False)
+        QCoreApplication.processEvents()
         user_prompt = self.input_prompt.text()
         if user_prompt:
             # Replace placeholders in the template
@@ -351,11 +368,14 @@ class PetalsServiceMonitor(QMainWindow):
 
             # Run the model as if it were on your computer
             inputs = self.tokenizer(formatted_message, return_tensors="pt")["input_ids"]
-            outputs = self.model.generate(inputs, max_new_tokens=5)
+            outputs = self.model.generate(inputs, max_new_tokens=self.config["max_new_tokens"])
             generated_text = self.tokenizer.decode(outputs[0])
             self.response_text.setPlainText(generated_text)
         else:
             self.response_text.setPlainText("Please enter a prompt.")
+        self.generate_button.setText("Generate Response")
+        self.generate_button.setEnabled(True)
+        QCoreApplication.processEvents()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
