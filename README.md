@@ -49,6 +49,7 @@ You can install the Petals Network Installer and Server Info App using the insta
   </picture>
 </a>
 
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
