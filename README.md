@@ -9,9 +9,6 @@
 ![GitHub contributors](https://img.shields.io/github/contributors/ParisNeo/petals_server_installer.svg)
 ![GitHub last commit](https://img.shields.io/github/last-commit/ParisNeo/petals_server_installer.svg)
 
-
-An installer tool for Petals, a decentralized text generation network, bundled with a PyQt5 application for monitoring server hardware and resource usage in a Windows Subsystem for Linux (WSL) environment.
-
 Petals Server Installer is a standalone installer for Petals, a decentralized text generation network. This tool simplifies the installation of a Petals server on various platforms. You can use it to set up a Petals server on Windows using Windows Subsystem for Linux (WSL) via the `petals-server.exe` or on Linux/macOS using the `install_script.sh`.
 
 ## Features
@@ -25,12 +22,16 @@ Petals Server Installer is a standalone installer for Petals, a decentralized te
 
 ### Windows
 
+From release page, download `petals-server.exe` and install it.
+
 After installation, you will have two new shortcuts:
 
 1. **Load Ubuntu**: Opens an Ubuntu environment for debugging or development.
 2. **Load Petals Server UI**: Launches the Petals Server UI.
 
 ### Linux/macOS
+
+From release page, download `install_script.exe` and run it with bash.
 
 1. The installer creates a Conda environment named "petals" for you.
 2. Activate the environment with `conda activate petals`.
