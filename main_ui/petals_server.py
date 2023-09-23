@@ -367,6 +367,7 @@ class PetalsServiceMonitor(QMainWindow):
     def generate_response(self):
         self.generate_button.setText("Generating")
         self.generate_button.setEnabled(False)
+        self.input_prompt.setEnabled(False)
         QCoreApplication.processEvents()
         user_prompt = self.input_prompt.text()
         if user_prompt:
@@ -383,6 +384,7 @@ class PetalsServiceMonitor(QMainWindow):
             self.response_text.setPlainText("Please enter a prompt.")
         self.generate_button.setText("Generate Response")
         self.generate_button.setEnabled(True)
+        self.input_prompt.setEnabled(True)
         QCoreApplication.processEvents()
 
 if __name__ == "__main__":
