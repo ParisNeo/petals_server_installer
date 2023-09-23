@@ -74,13 +74,22 @@ class PetalsServiceMonitor(QMainWindow):
         left_layout.addWidget(self.num_blocks_entry)
         
         # Add an "Update Usage" button
+
+        buttons_layout = QHBoxLayout()
+        self.save_config_button = QPushButton("Save config")
+        self.save_config_button.clicked.connect(self.save_config)
+        buttons_layout.addWidget(self.save_config_button)   
+
         self.update_usage_button = QPushButton("Update Usage")
         self.update_usage_button.clicked.connect(self.update_resource_info)
-        left_layout.addWidget(self.update_usage_button)        
+        buttons_layout.addWidget(self.update_usage_button)        
 
         self.start_server_button = QPushButton("Start Server")
         self.start_server_button.clicked.connect(self.start_server)
-        left_layout.addWidget(self.start_server_button)
+        buttons_layout.addWidget(self.start_server_button)
+
+        left_layout.addWidget(buttons_layout)
+
         self.link_label = QLabel("<a href='https://health.petals.dev/'>View Network Health on https://health.petals.dev/</a>")
         self.link_label.setTextFormat(Qt.RichText)
         self.link_label.setOpenExternalLinks(True)
@@ -181,7 +190,32 @@ class PetalsServiceMonitor(QMainWindow):
                 print("Previous config:")
                 print(config_data)
         return config_data
-            
+    
+    def save_config(self):
+        selected_model_name = self.model_combo.currentText()
+        selected_model_index = self.model_combo.currentIndex()
+
+        node_name = self.node_name_entry.text().strip()
+        device_id = self.device_combo.currentIndex()
+        token = self.token_entry.text().strip()
+        num_blocks = self.num_blocks_entry.text().strip()
+
+        config_data = {
+            'node_name': node_name,
+            'device': device_id,
+            'model_id': selected_model_index,
+            'token': token,
+            'num_blocks': num_blocks,
+            'generation_template':self.config["generation_template"],
+            "system_prompt":self.config["system_prompt"]                
+        }
+        config_path = Path(__file__).resolve().parent / 'config.yaml'
+        with open(config_path, 'w') as config_file:
+            yaml.dump(config_data, config_file, default_flow_style=False)        
+
+        self.config = config_data
+
+
     def load_models_from_yaml(self, file_path):
         try:
             with open(file_path, "r") as yaml_file:
