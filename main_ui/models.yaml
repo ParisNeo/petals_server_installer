@@ -1,0 +1,10 @@
+- name: petals-team/StableBeluga2
+- name: tiiuae/falcon-180B-chat
+- name: codellama/CodeLlama-34b-Instruct-hf
+  token: 
+- name: meta-llama/Llama-2-70b-chat-hf
+  token: 
+- name: huggyllama/llama-65b
+  token: 
+- name: bigscience/bloomz
+- name: bigscience/bloom-560m
