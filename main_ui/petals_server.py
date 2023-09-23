@@ -4,15 +4,16 @@ import psutil
 import yaml
 from pathlib import Path
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox, QTextEdit, QSplitter
+from PyQt5.QtGui import QTextCursor 
 from PyQt5.QtCore import QProcess, Qt
 
-class ServerInfoApp(QMainWindow):
+class PetalsServiceMonitor(QMainWindow):
     def __init__(self):
         super().__init__()
 
         self.config = self.get_config()
 
-        self.setWindowTitle("Server Info App")
+        self.setWindowTitle("Petals Service monitor UI")
         self.setGeometry(100, 100, 800, 500)
 
         self.central_widget = QWidget(self)
@@ -231,10 +232,28 @@ class ServerInfoApp(QMainWindow):
     def update_stdout_text(self):
         data = self.server_process.readAll()
         text = data.data().decode("utf-8")
-        self.stdout_text.append(text)
+        
+        # Check if the text contains carriage return characters
+        if '\r' in text:
+            # Split the text by carriage returns
+            lines = text.split('\r')
+            
+            # Take the last line to update the existing line
+            last_line = lines[-1]
+            
+            # Update the last line in the QTextEdit
+            cursor = self.stdout_text.textCursor()
+            cursor.movePosition(QTextCursor.End)
+            cursor.movePosition(QTextCursor.StartOfBlock, QTextCursor.KeepAnchor)
+            cursor.removeSelectedText()
+            cursor.insertText(last_line)
+        else:
+            # If no carriage return characters are found, simply append the text
+            self.stdout_text.append(text)
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    window = ServerInfoApp()
+    window = PetalsServiceMonitor()
     window.show()
     sys.exit(app.exec_())
