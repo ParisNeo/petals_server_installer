@@ -186,6 +186,7 @@ class PetalsServiceMonitor(QMainWindow):
         self.stdout_label = QLabel("Test client:")
         self.response_text = QTextEdit()
         self.response_text.setReadOnly(True)
+        right_layout.addWidget(self.stdout_label)
         right_layout.addWidget(self.response_text)
 
         # QLineEdit for user input
