@@ -2,12 +2,15 @@ import sys
 import subprocess
 import psutil
 import yaml
+from pathlib import Path
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox, QTextEdit
 from PyQt5.QtCore import QProcess
 
 class ServerInfoApp(QMainWindow):
     def __init__(self):
         super().__init__()
+
+        self.config = self.get_config()
 
         self.setWindowTitle("Server Info App")
         self.setGeometry(100, 100, 600, 500)
@@ -25,11 +28,16 @@ class ServerInfoApp(QMainWindow):
         self.model_combo = QComboBox()
         for model in self.models:
             self.model_combo.addItem(model["name"])
+        try:
+            self.model_combo.setCurrentIndex(self.config['model_id'])
+        except:
+            print("Couldn't set model id")
         self.layout.addWidget(self.model_label)
         self.layout.addWidget(self.model_combo)
 
         self.node_name_label = QLabel("Node Name:")
         self.node_name_entry = QLineEdit()
+        self.node_name_entry.setText(self.config['node_name'])
         self.layout.addWidget(self.node_name_label)
         self.layout.addWidget(self.node_name_entry)
 
@@ -37,8 +45,12 @@ class ServerInfoApp(QMainWindow):
         self.device_label = QLabel("Select Device:")
         self.device_combo = QComboBox()
         available_devices = self.detect_gpu_devices()
-        for device in available_devices:
+        self.device_combo.addItem("auto")
+        self.device_combo.addItem("cpu")
+        self.devices=["auto", "cpu"]
+        for i, device in enumerate(available_devices):
             self.device_combo.addItem(device)
+            self.devices.append(f"cuda:{i}")
         self.layout.addWidget(self.device_label)
         self.layout.addWidget(self.device_combo)
 
@@ -68,6 +80,30 @@ class ServerInfoApp(QMainWindow):
 
         self.server_process = None
 
+    def get_config(self):
+        # Define the YAML data structure
+        config_data = {
+            'node_name': 'Unnamed',
+            'model_id': 0,
+            'token': '',
+        }
+
+        # Check if config.yaml exists in the current folder
+        config_path = Path(__file__).resolve().parent / 'config.yaml'
+
+        if not config_path.exists():
+            # If the file doesn't exist, create it with the specified structure
+            with open(config_path, 'w') as config_file:
+                yaml.dump(config_data, config_file, default_flow_style=False)
+            print("config.yaml file created.")
+        else:
+            # If the file exists, load its content
+            with open(config_path, 'r') as config_file:
+                config_data = yaml.load(config_file, Loader=yaml.FullLoader)
+                print("Previous config:")
+                print(config_data)
+        return config_data
+            
     def load_models_from_yaml(self, file_path):
         try:
             with open(file_path, "r") as yaml_file:
@@ -108,7 +144,7 @@ class ServerInfoApp(QMainWindow):
         ]
 
         if selected_model.get("token"):
-            command.extend(["--token", selected_model["token"]])
+            command.extend(["--token", token])
 
         print(f"Command : {command}")
         try:
