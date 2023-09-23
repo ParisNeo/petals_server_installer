@@ -113,7 +113,7 @@ class PetalsServiceMonitor(QMainWindow):
         left_layout.addWidget(self.token_label)
         left_layout.addWidget(self.token_entry)
         # Num Blocks entry field for CPU
-        self.num_blocks_label = QLabel("Num Blocks (for CPU):")
+        self.num_blocks_label = QLabel("Num Blocks (the number of blocks to fill, -1 for auto):")
         self.num_blocks_entry = QLineEdit()
         self.num_blocks_entry.setText(str(self.config['num_blocks']))
         left_layout.addWidget(self.num_blocks_label)
@@ -136,9 +136,7 @@ class PetalsServiceMonitor(QMainWindow):
 
         left_layout.addLayout(buttons_layout)
 
-        self.link_label = QLabel("<a href='https://health.petals.dev/'>View Network Health on https://health.petals.dev/</a>")
-        self.link_label.setTextFormat(Qt.RichText)
-        self.link_label.setOpenExternalLinks(True)
+        self.link_label = QTextEdit("View Network Health on https://health.petals.dev/")
         left_layout.addWidget(self.link_label)
 
         self.max_new_tokens_label = QLabel("Max new tokens for inference:")
@@ -349,7 +347,7 @@ class PetalsServiceMonitor(QMainWindow):
             if selected_model.get("token"):
                 command.extend(["--token", token])
 
-            if device=="cpu":
+            if num_blocks!='-1':
                 command.extend(["--num_blocks", num_blocks])
 
             print(f"Command : {command}")
