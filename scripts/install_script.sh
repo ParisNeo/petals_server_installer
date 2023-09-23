@@ -22,7 +22,8 @@ source ~/miniconda/etc/profile.d/conda.sh
 echo 'source ~/miniconda/etc/profile.d/conda.sh' >> ~/.bashrc
 
 # Create and activate conda environment
-conda create petals python=3.10 pip -y
+echo Making petals conda environment
+conda create --name petals python=3.10 pip -y
 conda activate petals
 
 # install cuda
@@ -42,6 +43,7 @@ echo "export LD_LIBRARY_PATH=/usr/local/cuda-12.2/targets/x86_64-linux/lib/:$LD_
 # Install petals
 echo "Installing petals"
 pip install --upgrade git+https://github.com/bigscience-workshop/petals
+pip install --upgrade pyyaml
 
 echo "Installing PyQt5"
 pip install PyQt5

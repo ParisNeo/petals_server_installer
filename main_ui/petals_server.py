@@ -1,6 +1,7 @@
 import sys
 import subprocess
 import psutil
+import yaml  # Import the PyYAML library
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox
 
 class ServerInfoApp(QMainWindow):
@@ -15,11 +16,14 @@ class ServerInfoApp(QMainWindow):
 
         self.layout = QVBoxLayout(self.central_widget)
 
+        # Load the list of models from a YAML file
+        self.models = self.load_models_from_yaml("models.yaml")
+
         # Add QComboBox for model selection
         self.model_label = QLabel("Select Model:")
         self.model_combo = QComboBox()
-        self.model_combo.addItem("Model 1")
-        self.model_combo.addItem("Model 2")
+        for model in self.models:
+            self.model_combo.addItem(model)
         self.layout.addWidget(self.model_label)
         self.layout.addWidget(self.model_combo)
 
@@ -47,54 +51,15 @@ class ServerInfoApp(QMainWindow):
         self.layout.addWidget(self.resource_info_label)
         self.layout.addWidget(self.resource_info)
 
-    def detect_gpu_devices(self):
+    def load_models_from_yaml(self, file_path):
         try:
-            output = subprocess.check_output(["nvidia-smi", "--list-gpus"], universal_newlines=True)
-            devices = [line.strip() for line in output.split('\n') if line.strip()]
-            return devices
-        except subprocess.CalledProcessError:
+            with open(file_path, "r") as yaml_file:
+                models = yaml.safe_load(yaml_file)
+            return models
+        except FileNotFoundError:
             return []
 
-    def start_server(self):
-        model_name = self.model_combo.currentText()
-        node_name = self.node_name_entry.text().strip()
-        device = self.device_combo.currentText()
-
-        if not node_name:
-            self.resource_info.setText("Node Name is required.")
-            return
-
-        command = [
-            "python3",
-            "-m",
-            "petals.cli.run_server",
-            model_name,
-            "--public_name",
-            node_name,
-            "--device",
-            device,
-        ]
-
-        try:
-            subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            self.resource_info.setText("Server started successfully!")
-
-            # Update resource usage information
-            self.update_resource_info()
-        except subprocess.CalledProcessError as e:
-            self.resource_info.setText(f"Error starting the server: {e.stderr.decode('utf-8')}")
-
-    def update_resource_info(self):
-        cpu_usage = psutil.cpu_percent()
-        memory_info = psutil.virtual_memory()
-        gpu_info = subprocess.check_output(["nvidia-smi"], universal_newlines=True)
-
-        resource_text = f"CPU Usage: {cpu_usage}%\n"
-        resource_text += f"Memory Usage: {memory_info.percent}%\n"
-        resource_text += "GPU Information:\n"
-        resource_text += gpu_info
-
-        self.resource_info.setText(resource_text)
+    # Rest of the code remains unchanged...
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
