@@ -167,6 +167,9 @@ class ServerInfoApp(QMainWindow):
         if selected_model.get("token"):
             command.extend(["--token", token])
 
+        if device=="cpu":
+            command.extend(["--num_blocks", 4])
+
         print(f"Command : {command}")
         try:
             # Start the server process and capture its stdout
