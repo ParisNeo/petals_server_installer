@@ -120,6 +120,7 @@ class ServerInfoApp(QMainWindow):
         # Define the YAML data structure
         config_data = {
             'node_name': 'Unnamed',
+            'device': 0,
             'model_id': 0,
             'token': '',
             'num_blocks': 4
@@ -159,6 +160,7 @@ class ServerInfoApp(QMainWindow):
 
     def start_server(self):
         selected_model_name = self.model_combo.currentText()
+        selected_model_index = self.model_combo.currentIndex()
         selected_model = next((model for model in self.models if model["name"] == selected_model_name), None)
 
         node_name = self.node_name_entry.text().strip()
@@ -166,6 +168,18 @@ class ServerInfoApp(QMainWindow):
         device = self.devices[device_id]
         token = self.token_entry.text().strip()
         num_blocks = self.num_blocks_entry.text().strip()
+
+        config_data = {
+            'node_name': node_name,
+            'device': device_id,
+            'model_id': selected_model_index,
+            'token': token,
+            'num_blocks': num_blocks
+        }
+        config_path = Path(__file__).resolve().parent / 'config.yaml'
+        with open(config_path, 'w') as config_file:
+            yaml.dump(config_data, config_file, default_flow_style=False)
+        print("config.yaml file created.")
 
         if not node_name:
             self.resource_info.setText("Node Name is required.")
