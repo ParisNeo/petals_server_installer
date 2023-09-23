@@ -20,6 +20,24 @@ class PetalsServiceMonitor(QMainWindow):
         self.setWindowTitle("Petals Service monitor UI")
         self.setGeometry(100, 100, 800, 500)
 
+        # Apply a global stylesheet for the main window
+        main_window_stylesheet = (
+            "QMainWindow {"
+            "background-color: darkgray;"
+            "}"
+            "QPushButton {"
+            "background-color: orange;"
+            "border: none;"
+            "color: white;"
+            "padding: 10px;"
+            "border-radius: 5px;"
+            "}"
+            "QPushButton:hover {"
+            "background-color: darkorange;"
+            "}"
+        )
+        self.setStyleSheet(main_window_stylesheet)        
+
         self.central_widget = QWidget(self)
         self.setCentralWidget(self.central_widget)
 
