@@ -101,7 +101,7 @@ class PetalsServiceMonitor(QMainWindow):
         self.max_new_tokens_input.setMinimum(5)  # Set minimum value
         self.max_new_tokens_input.setMaximum(8096)  # Set maximum value
 
-        left_layout.addWidget(self.resource_info_label)
+        left_layout.addWidget(self.max_new_tokens_label)
         left_layout.addWidget(self.max_new_tokens_input)
 
         self.resource_info_label = QLabel("Resource Usage:")
