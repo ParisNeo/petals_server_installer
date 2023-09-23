@@ -72,7 +72,7 @@ class ServerInfoApp(QMainWindow):
         self.update_usage_button = QPushButton("Update Usage")
         self.update_usage_button.clicked.connect(self.update_resource_info)
         left_layout.addWidget(self.update_usage_button)        
-        
+
         self.start_server_button = QPushButton("Start Server")
         self.start_server_button.clicked.connect(self.start_server)
         left_layout.addWidget(self.start_server_button)
@@ -162,7 +162,8 @@ class ServerInfoApp(QMainWindow):
         selected_model = next((model for model in self.models if model["name"] == selected_model_name), None)
 
         node_name = self.node_name_entry.text().strip()
-        device = self.device_combo.currentText()
+        device_id = self.device_combo.currentIndex()
+        device = self.devices[device_id]
         token = self.token_entry.text().strip()
         num_blocks = self.num_blocks_entry.text().strip()
 
