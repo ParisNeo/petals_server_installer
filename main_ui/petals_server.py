@@ -33,7 +33,7 @@ class PetalsServiceMonitor(QMainWindow):
             "border-radius: 5px;"
             "}"
             "QPushButton:hover {"
-            "background-color: #FF8C00;"
+            "background-color: #d67702;"
             "}"
             "QTextEdit, QLineEdit, QSpinBox {"
             "background-color: #9c9494;"
