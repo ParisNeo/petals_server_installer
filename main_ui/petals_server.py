@@ -4,7 +4,7 @@ import psutil
 import yaml
 from pathlib import Path
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox, QTextEdit, QSplitter
-from PyQt5.QtCore import QProcess
+from PyQt5.QtCore import QProcess, Qt
 
 class ServerInfoApp(QMainWindow):
     def __init__(self):
@@ -72,6 +72,10 @@ class ServerInfoApp(QMainWindow):
         self.start_server_button = QPushButton("Start Server")
         self.start_server_button.clicked.connect(self.start_server)
         left_layout.addWidget(self.start_server_button)
+        self.link_label = QLabel("<a href='https://example.com'>Visit Example Website</a>")
+        self.link_label.setTextFormat(Qt.RichText)
+        self.link_label.setOpenExternalLinks(True)
+        self.layout.addWidget(self.link_label)
 
         self.resource_info_label = QLabel("Resource Usage:")
         self.resource_info = QTextEdit()
