@@ -3,7 +3,7 @@ import subprocess
 import psutil
 import yaml
 from pathlib import Path
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox, QTextEdit
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox, QTextEdit, QSplitter
 from PyQt5.QtCore import QProcess
 
 class ServerInfoApp(QMainWindow):
@@ -13,12 +13,15 @@ class ServerInfoApp(QMainWindow):
         self.config = self.get_config()
 
         self.setWindowTitle("Server Info App")
-        self.setGeometry(100, 100, 600, 500)
+        self.setGeometry(100, 100, 800, 500)
 
         self.central_widget = QWidget(self)
         self.setCentralWidget(self.central_widget)
 
-        self.layout = QVBoxLayout(self.central_widget)
+        self.layout = QHBoxLayout(self.central_widget)
+
+        # Left side layout for input widgets
+        left_layout = QVBoxLayout()
 
         # Load the list of models from a YAML file
         self.models = self.load_models_from_yaml("models.yaml")
@@ -32,14 +35,14 @@ class ServerInfoApp(QMainWindow):
             self.model_combo.setCurrentIndex(self.config['model_id'])
         except:
             print("Couldn't set model id")
-        self.layout.addWidget(self.model_label)
-        self.layout.addWidget(self.model_combo)
+        left_layout.addWidget(self.model_label)
+        left_layout.addWidget(self.model_combo)
 
         self.node_name_label = QLabel("Node Name:")
         self.node_name_entry = QLineEdit()
         self.node_name_entry.setText(self.config['node_name'])
-        self.layout.addWidget(self.node_name_label)
-        self.layout.addWidget(self.node_name_entry)
+        left_layout.addWidget(self.node_name_label)
+        left_layout.addWidget(self.node_name_entry)
 
         # Detect available GPU devices and add them to the QComboBox
         self.device_label = QLabel("Select Device:")
@@ -50,32 +53,51 @@ class ServerInfoApp(QMainWindow):
         for i, device in enumerate(available_devices):
             self.device_combo.addItem(device)
             self.devices.append(f"cuda:{i}")
-        self.layout.addWidget(self.device_label)
-        self.layout.addWidget(self.device_combo)
+        left_layout.addWidget(self.device_label)
+        left_layout.addWidget(self.device_combo)
 
         # Token entry field
         self.token_label = QLabel("Token (if required):")
         self.token_entry = QLineEdit()
-        self.layout.addWidget(self.token_label)
-        self.layout.addWidget(self.token_entry)
+        left_layout.addWidget(self.token_label)
+        left_layout.addWidget(self.token_entry)
 
         self.start_server_button = QPushButton("Start Server")
         self.start_server_button.clicked.connect(self.start_server)
-        self.layout.addWidget(self.start_server_button)
+        left_layout.addWidget(self.start_server_button)
 
-        # Display resource usage information
         self.resource_info_label = QLabel("Resource Usage:")
-        self.resource_info = QLabel()
-        self.layout.addWidget(self.resource_info_label)
-        self.layout.addWidget(self.resource_info)
+        self.resource_info = QTextEdit()
+        left_layout.addWidget(self.resource_info_label)
+        left_layout.addWidget(self.resource_info)
 
-        # QTextEdit widget for displaying server stdout
+        # Right side layout for server output
+        right_layout = QVBoxLayout()
+
         self.stdout_label = QLabel("Server Output:")
         self.stdout_text = QTextEdit()
         self.stdout_text.setReadOnly(True)
         self.stdout_text.setLineWrapMode(QTextEdit.NoWrap)
-        self.layout.addWidget(self.stdout_label)
-        self.layout.addWidget(self.stdout_text)
+        right_layout.addWidget(self.stdout_label)
+        right_layout.addWidget(self.stdout_text)
+
+        # Use a QSplitter to arrange the left and right layouts
+        splitter = QSplitter()
+        splitter.addWidget(QWidget())
+        splitter.addWidget(QWidget())
+        splitter.setSizes([self.width() // 3, self.width() * 2 // 3])
+        splitter.setStyleSheet("QSplitter::handle { background-color: lightgray; }")
+        splitter.setContentsMargins(0, 0, 0, 0)
+
+        left_widget = QWidget()
+        left_widget.setLayout(left_layout)
+        right_widget = QWidget()
+        right_widget.setLayout(right_layout)
+
+        splitter.widget(0).setLayout(left_layout)
+        splitter.widget(1).setLayout(right_layout)
+
+        self.layout.addWidget(splitter)
 
         self.server_process = None
 
