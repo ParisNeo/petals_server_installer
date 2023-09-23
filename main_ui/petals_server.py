@@ -60,6 +60,7 @@ class PetalsServiceMonitor(QMainWindow):
             self.devices.append(f"cuda:{i}")
         left_layout.addWidget(self.device_label)
         left_layout.addWidget(self.device_combo)
+        self.device_combo.setCurrentIndex(self.config["device"])
 
         # Token entry field
         self.token_label = QLabel("Token (if required):")
