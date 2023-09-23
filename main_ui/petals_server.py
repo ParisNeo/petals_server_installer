@@ -11,12 +11,15 @@ from transformers import AutoTokenizer
 from petals import AutoDistributedModelForCausalLM
 from PyQt5.QtCore import QCoreApplication
 
+from PyQt5.QtCore import QThread, pyqtSignal
+
 class PetalsServiceMonitor(QMainWindow):
     def __init__(self):
         super().__init__()
 
         self.config = self.get_config()
         self.model = None
+        self.generation_thread = None
 
         self.setWindowTitle("Petals Service monitor UI")
         self.setGeometry(100, 100, 800, 500)
@@ -113,7 +116,7 @@ class PetalsServiceMonitor(QMainWindow):
         left_layout.addWidget(self.token_label)
         left_layout.addWidget(self.token_entry)
         # Num Blocks entry field for CPU
-        self.num_blocks_label = QLabel("Num Blocks (the number of blocks to fill, -1 for auto):")
+        self.num_blocks_label = QLabel("Num Blocks (the number of blocks to serve, -1 for auto):")
         self.num_blocks_entry = QLineEdit()
         self.num_blocks_entry.setText(str(self.config['num_blocks']))
         left_layout.addWidget(self.num_blocks_label)
@@ -136,7 +139,7 @@ class PetalsServiceMonitor(QMainWindow):
 
         left_layout.addLayout(buttons_layout)
 
-        self.link_label = QTextEdit("View Network Health on https://health.petals.dev/")
+        self.link_label = QLineEdit("View Network Health on https://health.petals.dev/")
         left_layout.addWidget(self.link_label)
 
         self.max_new_tokens_label = QLabel("Max new tokens for inference:")
@@ -406,6 +409,7 @@ class PetalsServiceMonitor(QMainWindow):
     def generate_response(self):
         self.generate_button.setEnabled(False)
         self.input_prompt.setEnabled(False)
+
         if self.model is None:
             self.generate_button.setText("Loading ...")
             QCoreApplication.processEvents()
@@ -415,27 +419,46 @@ class PetalsServiceMonitor(QMainWindow):
             self.tokenizer = AutoTokenizer.from_pretrained(selected_model["name"])
             self.model = AutoDistributedModelForCausalLM.from_pretrained(selected_model["name"])
 
-
         self.generate_button.setText("Generating...")
         QCoreApplication.processEvents()
         user_prompt = self.input_prompt.text()
         if user_prompt:
             # Replace placeholders in the template
-            formatted_message = self.config["generation_template"].format(system_prompt=self.config["system_prompt"] , message=user_prompt)
+            formatted_message = self.config["generation_template"].format(system_prompt=self.config["system_prompt"], message=user_prompt)
 
-            # Run the model as if it were on your computer
-            inputs = self.tokenizer(formatted_message, return_tensors="pt")["input_ids"]
-            outputs = self.model.generate(inputs, max_new_tokens=self.config["max_new_tokens"])
-            generated_text = self.tokenizer.decode(outputs[0])
-            generated_text = generated_text.replace("<s> ","").replace("</s>","")[len(formatted_message):]
-            self.response_text.setPlainText(f"# Prompt:\n{user_prompt}\nAssistant:{generated_text}")
-            self.input_prompt.setText("")
+            # Create and start the generation thread
+            self.generation_thread = GenerationThread(self.model, self.tokenizer, user_prompt, formatted_message, self.config["max_new_tokens"])
+            self.generation_thread.finished.connect(self.handle_generation_finished)
+            self.generation_thread.start()
         else:
             self.response_text.setPlainText("Please enter a prompt.")
+
+    def handle_generation_finished(self, generated_text):
+        self.response_text.setPlainText(generated_text)
         self.generate_button.setText("Generate Response")
         self.generate_button.setEnabled(True)
         self.input_prompt.setEnabled(True)
         QCoreApplication.processEvents()
+
+class GenerationThread(QThread):
+    finished = pyqtSignal(str)
+
+    def __init__(self, model, tokenizer, user_prompt, formatted_message, max_new_tokens):
+        super().__init__()
+        self.model = model
+        self.tokenizer = tokenizer
+        self.user_prompt = user_prompt
+        self.formatted_message = formatted_message
+        self.max_new_tokens = max_new_tokens
+
+    def run(self):
+        # Generate response in a background thread
+        inputs = self.tokenizer(self.formatted_message, return_tensors="pt")["input_ids"]
+        outputs = self.model.generate(inputs, max_new_tokens=self.max_new_tokens)
+        generated_text = self.tokenizer.decode(outputs[0])
+        generated_text = generated_text.replace("<s> ", "").replace("</s>", "")[len(self.formatted_message):]
+        self.finished.emit(generated_text)
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
