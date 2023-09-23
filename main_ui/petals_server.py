@@ -57,6 +57,9 @@ class PetalsServiceMonitor(QMainWindow):
             "border-top-right-radius: 5px;"
             "border-bottom-right-radius: 5px;"
             "}"
+            "QLabel {"
+            "color: white;"
+            "}"
         )
         self.setStyleSheet(main_window_stylesheet)        
 
