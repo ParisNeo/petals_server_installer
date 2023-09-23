@@ -64,8 +64,7 @@ class ServerInfoApp(QMainWindow):
         # Num Blocks entry field for CPU
         self.num_blocks_label = QLabel("Num Blocks (for CPU):")
         self.num_blocks_entry = QLineEdit()
-        if self.config['device'] == "cpu":
-            self.num_blocks_entry.setText(str(self.config['num_blocks']))
+        self.num_blocks_entry.setText(str(self.config['num_blocks']))
         left_layout.addWidget(self.num_blocks_label)
         left_layout.addWidget(self.num_blocks_entry)
         
