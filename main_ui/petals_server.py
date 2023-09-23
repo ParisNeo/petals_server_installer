@@ -61,7 +61,14 @@ class ServerInfoApp(QMainWindow):
         self.token_entry = QLineEdit()
         left_layout.addWidget(self.token_label)
         left_layout.addWidget(self.token_entry)
-
+        # Num Blocks entry field for CPU
+        self.num_blocks_label = QLabel("Num Blocks (for CPU):")
+        self.num_blocks_entry = QLineEdit()
+        if self.config['device'] == "cpu":
+            self.num_blocks_entry.setText(str(self.config['num_blocks']))
+        left_layout.addWidget(self.num_blocks_label)
+        left_layout.addWidget(self.num_blocks_entry)
+        
         self.start_server_button = QPushButton("Start Server")
         self.start_server_button.clicked.connect(self.start_server)
         left_layout.addWidget(self.start_server_button)
@@ -148,6 +155,7 @@ class ServerInfoApp(QMainWindow):
         node_name = self.node_name_entry.text().strip()
         device = self.device_combo.currentText()
         token = self.token_entry.text().strip()
+        num_blocks = self.num_blocks_entry.text().strip()
 
         if not node_name:
             self.resource_info.setText("Node Name is required.")
@@ -168,7 +176,7 @@ class ServerInfoApp(QMainWindow):
             command.extend(["--token", token])
 
         if device=="cpu":
-            command.extend(["--num_blocks", '4'])
+            command.extend(["--num_blocks", num_blocks])
 
         print(f"Command : {command}")
         try:
