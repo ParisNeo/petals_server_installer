@@ -385,5 +385,5 @@ class PetalsServiceMonitor(QMainWindow):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = PetalsServiceMonitor()
-    window.show()
+    window.showMaximized()
     sys.exit(app.exec_())
