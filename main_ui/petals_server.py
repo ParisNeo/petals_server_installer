@@ -88,7 +88,7 @@ class PetalsServiceMonitor(QMainWindow):
         self.start_server_button.clicked.connect(self.start_server)
         buttons_layout.addWidget(self.start_server_button)
 
-        left_layout.addWidget(buttons_layout)
+        left_layout.addLayout(buttons_layout)
 
         self.link_label = QLabel("<a href='https://health.petals.dev/'>View Network Health on https://health.petals.dev/</a>")
         self.link_label.setTextFormat(Qt.RichText)
