@@ -228,6 +228,7 @@ class PetalsServiceMonitor(QMainWindow):
             yaml.dump(config_data, config_file, default_flow_style=False)        
 
         self.config = config_data
+        print("Configuration saved")
 
 
     def load_models_from_yaml(self, file_path):
