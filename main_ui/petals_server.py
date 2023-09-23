@@ -3,7 +3,7 @@ import subprocess
 import psutil
 import yaml
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox, QTextEdit
-from PyQt5.QtCore import QProcess, QTextStream
+from PyQt5.QtCore import QProcess
 
 class ServerInfoApp(QMainWindow):
     def __init__(self):
@@ -63,11 +63,10 @@ class ServerInfoApp(QMainWindow):
         self.stdout_text = QTextEdit()
         self.stdout_text.setReadOnly(True)
         self.stdout_text.setLineWrapMode(QTextEdit.NoWrap)
-        self.stdout_text.setVerticalScrollBarPolicy(1)  # Always show vertical scrollbar
         self.layout.addWidget(self.stdout_label)
         self.layout.addWidget(self.stdout_text)
 
-        self.process = None
+        self.server_process = None
 
     def load_models_from_yaml(self, file_path):
         try:
@@ -112,9 +111,11 @@ class ServerInfoApp(QMainWindow):
             command.extend(["--token", selected_model["token"]])
 
         try:
-            self.process = QProcess(self)
-            self.process.readyReadStandardOutput.connect(self.update_stdout_text)
-            self.process.start(" ".join(command))
+            # Start the server process and capture its stdout
+            self.server_process = QProcess()
+            self.server_process.setProcessChannelMode(QProcess.MergedChannels)
+            self.server_process.readyReadStandardOutput.connect(self.update_stdout_text)
+            self.server_process.start(" ".join(command))
             self.resource_info.setText("Server started successfully!")
 
             # Update resource usage information
@@ -135,8 +136,8 @@ class ServerInfoApp(QMainWindow):
         self.resource_info.setText(resource_text)
 
     def update_stdout_text(self):
-        data = self.process.readAllStandardOutput()
-        text = QTextStream(data).readAll()
+        data = self.server_process.readAll()
+        text = data.data().decode("utf-8")
         self.stdout_text.append(text)
 
 if __name__ == "__main__":
