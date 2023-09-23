@@ -117,6 +117,7 @@ class ServerInfoApp(QMainWindow):
             'node_name': 'Unnamed',
             'model_id': 0,
             'token': '',
+            'num_blocks': 4
         }
 
         # Check if config.yaml exists in the current folder
