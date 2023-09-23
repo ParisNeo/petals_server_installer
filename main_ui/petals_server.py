@@ -7,6 +7,9 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHB
 from PyQt5.QtGui import QTextCursor, QTextOption, QFont
 from PyQt5.QtCore import QProcess, Qt
 
+from transformers import AutoTokenizer
+from petals import AutoDistributedModelForCausalLM
+
 class PetalsServiceMonitor(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -114,6 +117,21 @@ class PetalsServiceMonitor(QMainWindow):
         right_layout.addWidget(self.stdout_label)
         right_layout.addWidget(self.stdout_text)
 
+        # QTextEdit for displaying model responses
+        self.response_text = QTextEdit()
+        self.response_text.setReadOnly(True)
+        right_layout.addWidget(self.response_text)
+
+        # QLineEdit for user input
+        self.input_prompt = QLineEdit()
+        self.input_prompt.setPlaceholderText("Enter your prompt...")
+        right_layout.addWidget(self.input_prompt)        
+        # QPushButton to trigger response generation
+        self.generate_button = QPushButton("Generate Response")
+        self.generate_button.clicked.connect(self.generate_response)
+        right_layout.addWidget(self.generate_button)
+        self.generate_button.setEnabled(False)
+
         # Use a QSplitter to arrange the left and right layouts
         splitter = QSplitter()
         splitter.addWidget(QWidget())
@@ -203,6 +221,14 @@ class PetalsServiceMonitor(QMainWindow):
             self.resource_info.setText("Node Name is required.")
             return
 
+        # Choose any model available at https://health.petals.dev
+        self.model_name = "petals-team/StableBeluga2"  # This one is fine-tuned Llama 2 (70B)
+
+        # Connect to a distributed network hosting model layers
+        self.tokenizer = AutoTokenizer.from_pretrained(selected_model["name"])
+        self.model = AutoDistributedModelForCausalLM.from_pretrained(selected_model["name"])
+        self.generate_button.setEnabled(True)
+
         command = [
             "python3",
             "-m",
@@ -268,6 +294,17 @@ class PetalsServiceMonitor(QMainWindow):
             # If no carriage return characters are found, simply append the text
             self.stdout_text.append(text)
 
+    # Create a function to generate and display responses
+    def generate_response(self):
+        user_prompt = self.input_prompt.text()
+        if user_prompt:
+            # Run the model as if it were on your computer
+            inputs = self.tokenizer(user_prompt, return_tensors="pt")["input_ids"]
+            outputs = self.model.generate(inputs, max_new_tokens=5)
+            generated_text = self.tokenizer.decode(outputs[0])
+            self.response_text.setPlainText(generated_text)
+        else:
+            self.response_text.setPlainText("Please enter a prompt.")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
