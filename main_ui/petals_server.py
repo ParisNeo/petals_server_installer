@@ -195,70 +195,75 @@ class PetalsServiceMonitor(QMainWindow):
             return []
 
     def start_server(self):
-        selected_model_name = self.model_combo.currentText()
-        selected_model_index = self.model_combo.currentIndex()
-        selected_model = next((model for model in self.models if model["name"] == selected_model_name), None)
+        if self.start_server_button.text()=="Stop Server":
+            self.server_process.terminate()
+            self.start_server_button.setText("Start Server")
+        else:
+            selected_model_name = self.model_combo.currentText()
+            selected_model_index = self.model_combo.currentIndex()
+            selected_model = next((model for model in self.models if model["name"] == selected_model_name), None)
 
-        node_name = self.node_name_entry.text().strip()
-        device_id = self.device_combo.currentIndex()
-        device = self.devices[device_id]
-        token = self.token_entry.text().strip()
-        num_blocks = self.num_blocks_entry.text().strip()
+            node_name = self.node_name_entry.text().strip()
+            device_id = self.device_combo.currentIndex()
+            device = self.devices[device_id]
+            token = self.token_entry.text().strip()
+            num_blocks = self.num_blocks_entry.text().strip()
 
-        config_data = {
-            'node_name': node_name,
-            'device': device_id,
-            'model_id': selected_model_index,
-            'token': token,
-            'num_blocks': num_blocks
-        }
-        config_path = Path(__file__).resolve().parent / 'config.yaml'
-        with open(config_path, 'w') as config_file:
-            yaml.dump(config_data, config_file, default_flow_style=False)
-        print("config.yaml file created.")
+            config_data = {
+                'node_name': node_name,
+                'device': device_id,
+                'model_id': selected_model_index,
+                'token': token,
+                'num_blocks': num_blocks
+            }
+            config_path = Path(__file__).resolve().parent / 'config.yaml'
+            with open(config_path, 'w') as config_file:
+                yaml.dump(config_data, config_file, default_flow_style=False)
+            print("config.yaml file created.")
 
-        if not node_name:
-            self.resource_info.setText("Node Name is required.")
-            return
+            if not node_name:
+                self.resource_info.setText("Node Name is required.")
+                return
 
-        # Choose any model available at https://health.petals.dev
-        self.model_name = "petals-team/StableBeluga2"  # This one is fine-tuned Llama 2 (70B)
+            # Choose any model available at https://health.petals.dev
+            self.model_name = "petals-team/StableBeluga2"  # This one is fine-tuned Llama 2 (70B)
 
-        # Connect to a distributed network hosting model layers
-        self.tokenizer = AutoTokenizer.from_pretrained(selected_model["name"])
-        self.model = AutoDistributedModelForCausalLM.from_pretrained(selected_model["name"])
-        self.generate_button.setEnabled(True)
+            # Connect to a distributed network hosting model layers
+            self.tokenizer = AutoTokenizer.from_pretrained(selected_model["name"])
+            self.model = AutoDistributedModelForCausalLM.from_pretrained(selected_model["name"])
+            self.generate_button.setEnabled(True)
 
-        command = [
-            "python3",
-            "-m",
-            "petals.cli.run_server",
-            selected_model["name"],
-            "--public_name",
-            node_name,
-            "--device",
-            device,
-        ]
+            command = [
+                "python3",
+                "-m",
+                "petals.cli.run_server",
+                selected_model["name"],
+                "--public_name",
+                node_name,
+                "--device",
+                device,
+            ]
 
-        if selected_model.get("token"):
-            command.extend(["--token", token])
+            if selected_model.get("token"):
+                command.extend(["--token", token])
 
-        if device=="cpu":
-            command.extend(["--num_blocks", num_blocks])
+            if device=="cpu":
+                command.extend(["--num_blocks", num_blocks])
 
-        print(f"Command : {command}")
-        try:
-            # Start the server process and capture its stdout
-            self.server_process = QProcess()
-            self.server_process.setProcessChannelMode(QProcess.MergedChannels)
-            self.server_process.readyReadStandardOutput.connect(self.update_stdout_text)
-            self.server_process.start(" ".join(command))
-            self.resource_info.setText("Server started successfully!")
+            print(f"Command : {command}")
+            try:
+                # Start the server process and capture its stdout
+                self.server_process = QProcess()
+                self.server_process.setProcessChannelMode(QProcess.MergedChannels)
+                self.server_process.readyReadStandardOutput.connect(self.update_stdout_text)
+                self.server_process.start(" ".join(command))
+                self.resource_info.setText("Server started successfully!")
+                self.start_server_button.setText("Stop Server")
 
-            # Update resource usage information
-            self.update_resource_info()
-        except Exception as e:
-            self.resource_info.setText(f"Error starting the server: {str(e)}")
+                # Update resource usage information
+                self.update_resource_info()
+            except Exception as e:
+                self.resource_info.setText(f"Error starting the server: {str(e)}")
 
     def update_resource_info(self):
         cpu_usage = psutil.cpu_percent()
