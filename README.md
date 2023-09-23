@@ -39,9 +39,15 @@ You can install the Petals Network Installer and Server Info App using the insta
 
 4. Click the "Update" button to fetch and display server information and network status.
 
-## Screenshots
+## Star History
 
-![App Screenshot](screenshot.png)
+<a href="https://star-history.com/#ParisNeo/petals_server_installer&Date">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=ParisNeo/petals_server_installer&type=Date&theme=dark" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=ParisNeo/petals_server_installer&type=Date" />
+    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=ParisNeo/petals_server_installer&type=Date" />
+  </picture>
+</a>
 
 ## License
 
