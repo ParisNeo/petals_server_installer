@@ -374,6 +374,7 @@ class PetalsServiceMonitor(QMainWindow):
             inputs = self.tokenizer(formatted_message, return_tensors="pt")["input_ids"]
             outputs = self.model.generate(inputs, max_new_tokens=self.config["max_new_tokens"])
             generated_text = self.tokenizer.decode(outputs[0])
+            generated_text.replace("<s> ","").replace("</s>","")[len(formatted_message):]
             self.response_text.setPlainText(generated_text)
         else:
             self.response_text.setPlainText("Please enter a prompt.")
