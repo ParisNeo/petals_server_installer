@@ -110,6 +110,7 @@ class ServerInfoApp(QMainWindow):
         if selected_model.get("token"):
             command.extend(["--token", selected_model["token"]])
 
+        print(f"Command : {command}")
         try:
             # Start the server process and capture its stdout
             self.server_process = QProcess()
