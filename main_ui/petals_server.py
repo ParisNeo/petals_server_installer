@@ -146,7 +146,7 @@ class PetalsServiceMonitor(QMainWindow):
         # Create a QSpinBox widget
         self.max_new_tokens_input = QSpinBox()
         self.max_new_tokens_input.setMinimum(5)  # Set minimum value
-        self.max_new_tokens_input.setMaximum(8096)  # Set maximum value
+        self.max_new_tokens_input.setMaximum(16384)  # Set maximum value
         self.max_new_tokens_input.setValue(self.config["max_new_tokens"])
 
         left_layout.addWidget(self.max_new_tokens_label)
