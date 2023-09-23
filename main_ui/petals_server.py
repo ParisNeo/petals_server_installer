@@ -26,14 +26,20 @@ class PetalsServiceMonitor(QMainWindow):
             "background-color: darkgray;"
             "}"
             "QPushButton {"
-            "background-color: orange;"
+            "background-color: #FFA500;"
             "border: none;"
             "color: white;"
             "padding: 10px;"
             "border-radius: 5px;"
             "}"
             "QPushButton:hover {"
-            "background-color: darkorange;"
+            "background-color: #FF8C00;"
+            "}"
+            "QTextEdit, QLineEdit {"
+            "background-color: #EDEDED;"  # Slightly lighter background color for text inputs
+            "border: none;"
+            "padding: 5px;"
+            "border-radius: 5px;"
             "}"
         )
         self.setStyleSheet(main_window_stylesheet)        
