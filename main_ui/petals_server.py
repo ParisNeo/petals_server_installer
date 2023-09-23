@@ -119,6 +119,7 @@ class PetalsServiceMonitor(QMainWindow):
         right_layout.addWidget(self.stdout_text)
 
         # QTextEdit for displaying model responses
+        self.stdout_label = QLabel("Test client:")
         self.response_text = QTextEdit()
         self.response_text.setReadOnly(True)
         right_layout.addWidget(self.response_text)
