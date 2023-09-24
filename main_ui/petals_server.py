@@ -581,8 +581,8 @@ class PetalsServiceMonitor(QMainWindow):
 
         inference_dtype_id = self.inference_combo.currentIndex()
 
-        generation_template = self.text_gen_template_text.text().strip()
-        system_prompt = self.text_gen_system_prompt_text.text().strip()
+        generation_template = self.text_gen_template_text.plainText().strip()
+        system_prompt = self.text_gen_system_prompt_text.plainText().strip()
 
 
         # Update the 'config' dictionary with the new values
