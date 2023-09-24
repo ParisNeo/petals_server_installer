@@ -391,15 +391,59 @@ class PetalsServiceMonitor(QMainWindow):
         about_text = QTextBrowser()
         about_text.setOpenExternalLinks(True)  # Enable opening links in a web browser
 
-        # Set the rich text content with information about your work and the author
+        # Define CSS styles for better formatting
+        css_style = """
+        body {
+            font-family: Arial, sans-serif;
+        }
+        h1 {
+            font-size: 24px;
+            color: #007bff;
+        }
+        h2 {
+            font-size: 20px;
+            color: #333;
+        }
+        p {
+            font-size: 16px;
+            color: #666;
+        }
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        """
+
+        # Set the CSS style
+        about_text.setStyleSheet(css_style)
+
+        # Set the rich text content with information about Petals Service Monitor
         about_text.setHtml(
             """
             <html>
             <head/>
             <body>
-            <p>This application was created by ParisNeo.</p>
-            <p>It is designed to showcase various features of PyQt5 and provide a user interface for interacting with machine learning models.</p>
-            <p>For more information and updates, please visit the <a href="https://github.com/ParisNeo/pyqt5-machine-learning-demo">GitHub repository</a>.</p>
+            <h1>Petals Service Monitor</h1>
+            <p>Welcome to the Petals Service Monitor, a versatile application for managing and interacting with machine learning models in a decentralized fashion on the petals peer to peer network.</p>
+            
+            <h2>Features:</h2>
+            <ul>
+                <li>Model Selection: Choose from a variety of pre-trained machine learning models.</li>
+                <li>Server Configuration: Configure server settings, including node name, device selection, and authentication tokens.</li>
+                <li>Resource Monitoring: Keep an eye on CPU, memory, and GPU usage in real-time.</li>
+                <li>Text Generation: Generate responses from selected models based on user input.</li>
+                <li>Network health monitoring: View network health page and update it to have a better view of the different models and the number of nodes serving them.</li>
+                <li>GitHub Repository: Get the latest updates and contribute to the project on our <a href="https://github.com/ParisNeo/petals_server_installer">GitHub repository</a>.</li>
+            </ul>
+
+            <h2>About the Author:</h2>
+            <p>Petals Service Monitor was created by ParisNeo, an enthusiastic developer passionate about machine learning integration.</p>
+
+            <h2>GitHub Repository:</h2>
+            <p>For more information, updates, and contributions, please visit the <a href="https://github.com/ParisNeo/petals_server_installer">GitHub repository</a> of this application.</p>
             </body>
             </html>
             """
@@ -407,7 +451,8 @@ class PetalsServiceMonitor(QMainWindow):
 
         about_layout.addWidget(about_text)
         about_widget.setLayout(about_layout)
-        self.tab_widget.addTab(about_widget, "About")
+        self.tab_widget.addTab(about_widget, "About Petals Service Monitor")
+
 
 
     def get_config(self):
