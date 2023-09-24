@@ -21,7 +21,15 @@ from petals import AutoDistributedModelForCausalLM
 from PyQt5.QtCore import QCoreApplication
 
 from PyQt5.QtCore import QThread, pyqtSignal
-
+import torch
+dtypes = [
+    torch.float16,
+    torch.float32
+    ]
+str_dtypes = [
+    "float16",
+    "float32"
+]
 class PetalsServiceMonitor(QMainWindow):
     """
     Petals Service Monitor
@@ -182,6 +190,19 @@ class PetalsServiceMonitor(QMainWindow):
         left_layout.addWidget(self.max_new_tokens_label)
         left_layout.addWidget(self.max_new_tokens_input)
 
+        # Add QComboBox for inference type selection
+        self.inference_type_label = QLabel("Inference data type:")
+        self.inference_combo = QComboBox()
+        for dtype_ in str_dtypes:
+            self.inference_combo.addItem(dtype_)
+        try:
+            self.inference_combo.setCurrentIndex(self.config['inference_dtype_id'])
+        except:
+            print("Couldn't set inference id")
+        left_layout.addWidget(self.inference_label)
+        left_layout.addWidget(self.inference_combo)
+
+
         self.resource_info_label = QLabel("Resource Usage:")
         self.resource_info = QTextEdit()
         self.resource_info.setReadOnly(True)
@@ -273,6 +294,7 @@ class PetalsServiceMonitor(QMainWindow):
             'model_id': 0,
             'token': '',
             'num_blocks': 4,
+            'inference_dtype_id': 0,
             'generation_template':"{system_prompt}### User: {message}\n\n### Assistant:\n",
             "system_prompt":"Act as an AI assistant that is always ready to provide useful information and assistance. Help the user acheive his task.",
             'max_new_tokens':1024
@@ -313,6 +335,8 @@ class PetalsServiceMonitor(QMainWindow):
         num_blocks = self.num_blocks_entry.text().strip()
         max_new_tokens = self.max_new_tokens_input.value()
 
+        inference_dtype_id = self.inference_combo.currentIndex()
+
         # Update the 'config' dictionary with the new values
         self.config.update({
             'node_name': node_name,
@@ -320,6 +344,7 @@ class PetalsServiceMonitor(QMainWindow):
             'model_id': selected_model_index,
             'token': token,
             'num_blocks': num_blocks,
+            'inference_dtype_id': inference_dtype_id,
             'max_new_tokens': max_new_tokens
         })
 
@@ -469,7 +494,7 @@ class PetalsServiceMonitor(QMainWindow):
             selected_model = next((model for model in self.models if model["name"] == selected_model_name), None)
             # Connect to a distributed network hosting model layers
             self.tokenizer = AutoTokenizer.from_pretrained(selected_model["name"])
-            self.model = AutoDistributedModelForCausalLM.from_pretrained(selected_model["name"])
+            self.model = AutoDistributedModelForCausalLM.from_pretrained(selected_model["name"], torch_dtype=dtypes[self.config["inference_dtype_id"]])
 
         self.generate_button.setText("Generating...")
         QCoreApplication.processEvents()
