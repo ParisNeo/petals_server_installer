@@ -114,12 +114,14 @@ class PetalsServiceMonitor(QMainWindow):
             "QLabel {"
             "color: white;"
             "}"
+            "QWidget { background-color: #333; }"
             "QTabWidget::pane { background-color: #333; }"
             "QTabBar::tab { background-color: #555; color: white; }"
             "QTabBar::tab:selected { background-color: #777; }"
             "QTabWidget::pane { background-color: #333; }"
             "QTabBar::tab { background-color: #555; color: white; }"
             "QTabBar::tab:selected { background-color: #777; }"
+
         )
         self.setStyleSheet(main_window_stylesheet)        
 
