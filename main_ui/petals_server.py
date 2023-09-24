@@ -441,6 +441,7 @@ class PetalsServiceMonitor(QMainWindow):
 
             <h2>About the Author:</h2>
             <p>Petals Service Monitor was created by ParisNeo, an enthusiastic developer passionate about machine learning integration.</p>
+            <p>ParisNeo is also known for the <a href="https://github.com/ParisNeo/lollms-webui">Lord Of Large Language Models project (lollms for short)</a>.</p>
 
             <h2>GitHub Repository:</h2>
             <p>For more information, updates, and contributions, please visit the <a href="https://github.com/ParisNeo/petals_server_installer">GitHub repository</a> of this application.</p>
