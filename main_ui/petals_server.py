@@ -208,7 +208,7 @@ class PetalsServiceMonitor(QMainWindow):
 
     def create_settings_tab(self):
         settings_widget = QWidget()
-        settings_up_layout = QHBoxLayout()
+        settings_up_layout = QVBoxLayout()
         settings_layout = QHBoxLayout()
         settings_up_layout.addLayout(settings_layout)
 
