@@ -485,11 +485,11 @@ class PetalsServiceMonitor(QMainWindow):
             <head/>
             <body>
             <h1>Petals Service Monitor</h1>
-            <p>Welcome to the Petals Service Monitor, a versatile application for managing and interacting with machine learning models in a decentralized fashion on the petals peer to peer network.</p>
+            <p>Welcome to the Petals Service Monitor, a versatile application for managing and interacting with large language models (LLMs) in a decentralized fashion on the petals peer to peer network.</p>
             
             <h2>Features:</h2>
             <ul>
-                <li>Model Selection: Choose from a variety of pre-trained machine learning models.</li>
+                <li>Model Selection: Choose from a variety of pre-trained LLMS.</li>
                 <li>Server Configuration: Configure server settings, including node name, device selection, and authentication tokens.</li>
                 <li>Resource Monitoring: Keep an eye on CPU, memory, and GPU usage in real-time.</li>
                 <li>Text Generation: Generate responses from selected models based on user input.</li>
