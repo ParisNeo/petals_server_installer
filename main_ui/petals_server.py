@@ -12,7 +12,7 @@ import subprocess
 import psutil
 import yaml
 from pathlib import Path
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox, QTextEdit, QSplitter,  QSpinBox, QTabWidget
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox, QTextEdit, QSplitter,  QSpinBox, QTabWidget, QGroupBox
 from PyQt5.QtGui import QTextCursor, QTextOption, QFont
 from PyQt5.QtCore import QProcess, Qt
 
@@ -146,8 +146,10 @@ class PetalsServiceMonitor(QMainWindow):
         settings_widget = QWidget()
         settings_layout = QVBoxLayout()
 
+        # Server Settings
+        server_settings_group = QGroupBox("Server Settings")
+        server_settings_layout = QVBoxLayout()
 
-        # Add QComboBox for model selection
         self.model_label = QLabel("Select Model:")
         self.model_combo = QComboBox()
         for model in self.models:
@@ -156,14 +158,14 @@ class PetalsServiceMonitor(QMainWindow):
             self.model_combo.setCurrentIndex(self.config['model_id'])
         except:
             print("Couldn't set model id")
-        settings_layout.addWidget(self.model_label)
-        settings_layout.addWidget(self.model_combo)
+        server_settings_layout.addWidget(self.model_label)
+        server_settings_layout.addWidget(self.model_combo)
 
         self.node_name_label = QLabel("Node Name:")
         self.node_name_entry = QLineEdit()
         self.node_name_entry.setText(self.config['node_name'])
-        settings_layout.addWidget(self.node_name_label)
-        settings_layout.addWidget(self.node_name_entry)
+        server_settings_layout.addWidget(self.node_name_label)
+        server_settings_layout.addWidget(self.node_name_entry)
 
         # Detect available GPU devices and add them to the QComboBox
         self.device_label = QLabel("Select Device:")
@@ -174,38 +176,39 @@ class PetalsServiceMonitor(QMainWindow):
         for i, device in enumerate(available_devices):
             self.device_combo.addItem(device)
             self.devices.append(f"cuda:{i}")
-        settings_layout.addWidget(self.device_label)
-        settings_layout.addWidget(self.device_combo)
+        server_settings_layout.addWidget(self.device_label)
+        server_settings_layout.addWidget(self.device_combo)
         print(f'using device {self.config["device"]}')
         self.device_combo.setCurrentIndex(self.config["device"])
 
-        # Token entry field
         self.token_label = QLabel("Token (if required):")
         self.token_entry = QLineEdit()
-        settings_layout.addWidget(self.token_label)
-        settings_layout.addWidget(self.token_entry)
-        # Num Blocks entry field for CPU
+        server_settings_layout.addWidget(self.token_label)
+        server_settings_layout.addWidget(self.token_entry)
+
         self.num_blocks_label = QLabel("Num Blocks (the number of blocks to serve, -1 for auto):")
         self.num_blocks_entry = QLineEdit()
         self.num_blocks_entry.setText(str(self.config['num_blocks']))
-        settings_layout.addWidget(self.num_blocks_label)
-        settings_layout.addWidget(self.num_blocks_entry)
+        server_settings_layout.addWidget(self.num_blocks_label)
+        server_settings_layout.addWidget(self.num_blocks_entry)
+
+        server_settings_group.setLayout(server_settings_layout)
         
-        # Add an "Update Usage" button
+        # Inference Settings
+        inference_settings_group = QGroupBox("Inference Settings")
+        inference_settings_layout = QVBoxLayout()
+
         self.link_label = QLineEdit("View Network Health on https://health.petals.dev/")
-        settings_layout.addWidget(self.link_label)
+        inference_settings_layout.addWidget(self.link_label)
 
         self.max_new_tokens_label = QLabel("Max new tokens for inference:")
-        # Create a QSpinBox widget
         self.max_new_tokens_input = QSpinBox()
         self.max_new_tokens_input.setMinimum(5)  # Set minimum value
         self.max_new_tokens_input.setMaximum(16384)  # Set maximum value
         self.max_new_tokens_input.setValue(self.config["max_new_tokens"])
+        inference_settings_layout.addWidget(self.max_new_tokens_label)
+        inference_settings_layout.addWidget(self.max_new_tokens_input)
 
-        settings_layout.addWidget(self.max_new_tokens_label)
-        settings_layout.addWidget(self.max_new_tokens_input)
-
-        # Add QComboBox for inference type selection
         self.inference_label = QLabel("Inference data type:")
         self.inference_combo = QComboBox()
         for dtype_ in str_dtypes:
@@ -214,19 +217,33 @@ class PetalsServiceMonitor(QMainWindow):
             self.inference_combo.setCurrentIndex(self.config['inference_dtype_id'])
         except:
             print("Couldn't set inference id")
-        settings_layout.addWidget(self.inference_label)
-        settings_layout.addWidget(self.inference_combo)
+        inference_settings_layout.addWidget(self.inference_label)
+        inference_settings_layout.addWidget(self.inference_combo)
 
+        inference_settings_group.setLayout(inference_settings_layout)
+        
+        # Save Config Button
         self.save_config_button = QPushButton("Save config")
         self.save_config_button.clicked.connect(self.save_config)
-        settings_layout.addWidget(self.save_config_button)   
 
-
+        settings_layout.addWidget(server_settings_group)
+        settings_layout.addWidget(inference_settings_group)
+        settings_layout.addWidget(self.save_config_button)
+        
         settings_widget.setLayout(settings_layout)
         self.tab_widget.addTab(settings_widget, "Settings")
 
 
+
     def create_server_output_tab(self):
+        """
+        Create a tab for displaying server output.
+
+        This method initializes and sets up a tab for displaying server output, which includes any messages or logs
+        generated by the server during its operation. It creates the necessary widgets, connects signals and slots
+        for updating the server output, and adds them to the tab layout.
+
+        """        
         server_output_widget = QWidget()
         server_output_layout = QVBoxLayout()
 
@@ -252,6 +269,14 @@ class PetalsServiceMonitor(QMainWindow):
         self.tab_widget.addTab(server_output_widget, "Server Output")
 
     def create_resources_tab(self):
+        """
+        Create a tab for displaying resource usage information.
+
+        This method initializes and sets up a tab for displaying resource usage information, including CPU and memory
+        usage, GPU information, and any other relevant resource statistics. It creates necessary widgets, connects
+        signals and slots for updating resource information, and adds them to the tab layout.
+
+        """        
         resources_widget = QWidget()
         resources_layout = QVBoxLayout()
 
@@ -278,6 +303,14 @@ class PetalsServiceMonitor(QMainWindow):
         self.tab_widget.addTab(resources_widget, "Resources")
 
     def create_text_generation_tab(self):
+        """
+        Create a tab for text generation user interface.
+
+        This method initializes and sets up a tab for text generation, including user input, response display,
+        and generation button functionality. It creates necessary widgets, connects signals and slots, and
+        adds them to the tab layout.
+
+        """        
         text_generation_widget = QWidget()
         text_generation_layout = QVBoxLayout()
 
