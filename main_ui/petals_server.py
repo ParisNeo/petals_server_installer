@@ -263,6 +263,15 @@ class PetalsServiceMonitor(QMainWindow):
         # Inference Settings
         inference_settings_group = QGroupBox("Inference Settings")
         inference_settings_layout = QVBoxLayout()
+        self.text_gen_template_label = QLabel("Text generation template")
+        self.text_gen_template_text = QTextEdit(self.config["generation_template"])
+        inference_settings_layout.addWidget(self.text_gen_template_label)
+        inference_settings_layout.addWidget(self.text_gen_template_text)
+
+        self.text_gen_system_prompt_label = QLabel("System Prompt")
+        self.text_gen_system_prompt_text = QTextEdit(self.config["system_prompt"])
+        inference_settings_layout.addWidget(self.text_gen_system_prompt_label)
+        inference_settings_layout.addWidget(self.text_gen_system_prompt_text)
 
         self.max_new_tokens_label = QLabel("Max new tokens for inference:")
         self.max_new_tokens_input = QSpinBox()
@@ -572,6 +581,10 @@ class PetalsServiceMonitor(QMainWindow):
 
         inference_dtype_id = self.inference_combo.currentIndex()
 
+        generation_template = self.text_gen_template_text.text().strip()
+        system_prompt = self.text_gen_system_prompt_text.text().strip()
+
+
         # Update the 'config' dictionary with the new values
         self.config.update({
             'node_name': node_name,
@@ -580,7 +593,9 @@ class PetalsServiceMonitor(QMainWindow):
             'token': token,
             'num_blocks': num_blocks,
             'inference_dtype_id': inference_dtype_id,
-            'max_new_tokens': max_new_tokens
+            'max_new_tokens': max_new_tokens,
+            'generation_template':generation_template,
+            'system_prompt':system_prompt
         })
 
     def save_config(self):
