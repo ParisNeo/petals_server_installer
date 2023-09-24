@@ -1,3 +1,12 @@
+"""
+    Petals Server Installer
+
+    Author: ParisNeo
+    Version: 1.0.0
+    Description: A standalone installer for Petals, a decentralized text generation network.
+
+    This Python script provides the functionality for configuring and testing a Petals server node.
+"""
 import sys
 import subprocess
 import psutil
@@ -14,7 +23,28 @@ from PyQt5.QtCore import QCoreApplication
 from PyQt5.QtCore import QThread, pyqtSignal
 
 class PetalsServiceMonitor(QMainWindow):
+    """
+    Petals Service Monitor
+
+    This PyQt5 application provides a user interface for monitoring Petals service status,
+    server hardware details, GPU status, CPU usage, and memory usage in a Windows Subsystem for Linux (WSL) environment.
+
+    """    
     def __init__(self):
+        """
+        Initialize the Petals Service Monitor UI.
+
+        This method sets up the main window, configures UI elements, and initializes variables for server management.
+
+        - Loads user configuration.
+        - Sets up the main window and its appearance.
+        - Creates left and right layouts for input widgets and server output.
+        - Initializes buttons, labels, and text input fields.
+        - Configures UI styles with a global stylesheet.
+        - Connects button click events to their respective functions.
+        - Sets up a QSplitter to arrange the left and right layouts.
+
+        """        
         super().__init__()
 
         self.config = self.get_config()
@@ -196,6 +226,7 @@ class PetalsServiceMonitor(QMainWindow):
         self.input_prompt = QLineEdit()
         self.input_prompt.setPlaceholderText("Enter your prompt...")
         self.input_prompt.returnPressed.connect(self.generate_response)
+        self.input_prompt.setEnabled(False)
         input_layout.addWidget(self.input_prompt)        
         # QPushButton to trigger response generation
         self.generate_button = QPushButton("Generate Response")
@@ -225,6 +256,16 @@ class PetalsServiceMonitor(QMainWindow):
         self.server_process = None
 
     def get_config(self):
+        """
+        Load or create the configuration data for the Petals Service Monitor.
+
+        This method checks if the 'config.yaml' file exists in the current folder. If it does not exist, it creates a
+        default configuration file. If it exists, it loads the configuration from the file and returns it.
+
+        Returns:
+            dict: The configuration data loaded from the 'config.yaml' file or the default configuration data.
+
+        """        
         # Define the YAML data structure
         config_data = {
             'node_name': 'Unnamed',
@@ -252,32 +293,55 @@ class PetalsServiceMonitor(QMainWindow):
                 print("Previous config:")
                 print(config_data)
         return config_data
-    
-    def save_config(self):
+
+    def update_config_from_ui(self):
+        """
+        Update the 'config' dictionary with values from the UI components.
+
+        This method retrieves the configuration settings from the UI components and updates the 'config'
+        dictionary with these values.
+
+        """
+        # Get the selected model name and index
         selected_model_name = self.model_combo.currentText()
         selected_model_index = self.model_combo.currentIndex()
 
+        # Get the node name, device ID, token, num_blocks, and max_new_tokens from UI components
         node_name = self.node_name_entry.text().strip()
         device_id = self.device_combo.currentIndex()
         token = self.token_entry.text().strip()
         num_blocks = self.num_blocks_entry.text().strip()
         max_new_tokens = self.max_new_tokens_input.value()
 
-        config_data = {
+        # Update the 'config' dictionary with the new values
+        self.config.update({
             'node_name': node_name,
             'device': device_id,
             'model_id': selected_model_index,
             'token': token,
             'num_blocks': num_blocks,
-            'generation_template':self.config["generation_template"],
-            'system_prompt':self.config["system_prompt"],
-            'max_new_tokens':max_new_tokens
-        }
-        config_path = Path(__file__).resolve().parent / 'config.yaml'
-        with open(config_path, 'w') as config_file:
-            yaml.dump(config_data, config_file, default_flow_style=False)        
+            'max_new_tokens': max_new_tokens
+        })
 
-        self.config = config_data
+    def save_config(self):
+        """
+        Save the current configuration settings to the 'config.yaml' file.
+
+        This method updates the 'config' dictionary with values from the UI components using the
+        'update_config_from_ui' method. It then writes the 'config' dictionary to the 'config.yaml' file
+        to save the configuration.
+
+        """        
+        # Update the 'config' dictionary from the UI
+        self.update_config_from_ui()
+
+        # Define the path to the 'config.yaml' file
+        config_path = Path(__file__).resolve().parent / 'config.yaml'
+
+        # Write the 'config' dictionary to the 'config.yaml' file
+        with open(config_path, 'w') as config_file:
+            yaml.dump(self.config, config_file, default_flow_style=False)        
+
         print("Configuration saved")
 
 
@@ -299,11 +363,14 @@ class PetalsServiceMonitor(QMainWindow):
 
     def start_server(self):
         if self.start_server_button.text()=="Stop Server":
+            self.model = None
+            self.input_prompt.setEnabled(False)
+            self.generate_button.setEnabled(False)
             self.server_process.terminate()
             self.start_server_button.setText("Start Server")
         else:
+            self.save_config()            
             selected_model_name = self.model_combo.currentText()
-            selected_model_index = self.model_combo.currentIndex()
             selected_model = next((model for model in self.models if model["name"] == selected_model_name), None)
 
             node_name = self.node_name_entry.text().strip()
@@ -311,30 +378,13 @@ class PetalsServiceMonitor(QMainWindow):
             device = self.devices[device_id]
             token = self.token_entry.text().strip()
             num_blocks = self.num_blocks_entry.text().strip()
-            max_new_tokens = self.max_new_tokens_input.value()
-
-            config_data = {
-                'node_name': node_name,
-                'device': device_id,
-                'model_id': selected_model_index,
-                'token': token,
-                'num_blocks': num_blocks,
-                'generation_template':self.config["generation_template"],
-                'system_prompt':self.config["system_prompt"],
-                'max_new_tokens':max_new_tokens         
-            }
-            config_path = Path(__file__).resolve().parent / 'config.yaml'
-            with open(config_path, 'w') as config_file:
-                yaml.dump(config_data, config_file, default_flow_style=False)
-            print("config.yaml file created.")
-            self.config = config_data
 
             if not node_name:
                 self.resource_info.setText("Node Name is required.")
                 return
 
             # Choose any model available at https://health.petals.dev
-            self.model_name = "petals-team/StableBeluga2"  # This one is fine-tuned Llama 2 (70B)
+            self.model_name = selected_model_name
 
             command = [
                 "python3",
@@ -369,6 +419,8 @@ class PetalsServiceMonitor(QMainWindow):
                 self.resource_info.setText(f"Error starting the server: {str(e)}")
             
             # Force the application to execute the event loop
+            self.generate_button.setEnabled(True)
+            self.input_prompt.setEnabled(True)
             QCoreApplication.processEvents()
 
     def update_resource_info(self):

@@ -8,3 +8,4 @@
   token: 
 - name: bigscience/bloomz
 - name: bigscience/bloom-560m
+- name: Phind/Phind-CodeLlama-34B-v2
