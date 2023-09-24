@@ -12,7 +12,7 @@ import subprocess
 import psutil
 import yaml
 from pathlib import Path
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox, QTextEdit, QSplitter,  QSpinBox, QTabWidget, QGroupBox, QTextBrowser
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox, QTextEdit, QSplitter,  QSpinBox, QTabWidget, QGroupBox, QTextBrowser, QMessageBox
 from PyQt5.QtGui import QTextCursor, QTextOption, QFont
 from PyQt5.QtCore import QProcess, Qt
 
@@ -36,6 +36,56 @@ str_dtypes = [
     "float16",
     "float32"
 ]
+
+
+class GenerationThread(QThread):
+    """
+    A PyQt QThread class for background text generation.
+
+    This class inherits from QThread and is designed to run text generation in the background. It takes a pre-trained
+    model, a tokenizer, user input prompt, a formatted message, and a maximum number of new tokens to generate.
+
+    Attributes:
+        finished (pyqtSignal): A PyQt signal emitted when text generation is completed, carrying the generated text.
+
+    """
+
+    finished = pyqtSignal(str)
+
+    def __init__(self, model, tokenizer, user_prompt, formatted_message, max_new_tokens):
+        """
+        Initialize a GenerationThread instance.
+
+        Args:
+            model: The pre-trained language model for text generation.
+            tokenizer: The tokenizer for tokenizing input text.
+            user_prompt (str): The user's input prompt for text generation.
+            formatted_message (str): The formatted message that includes system and user prompts.
+            max_new_tokens (int): The maximum number of new tokens to generate.
+
+        """
+        super().__init__()
+        self.model = model
+        self.tokenizer = tokenizer
+        self.user_prompt = user_prompt
+        self.formatted_message = formatted_message
+        self.max_new_tokens = max_new_tokens
+
+    def run(self):
+        """
+        Execute the text generation process in a background thread.
+
+        This method performs the text generation process using the provided model, tokenizer, user input, formatted
+        message, and maximum number of tokens. It emits the 'finished' signal with the generated text when the
+        generation is completed.
+
+        """
+        # Generate response in a background thread
+        inputs = self.tokenizer(self.formatted_message, return_tensors="pt")["input_ids"]
+        outputs = self.model.generate(inputs, max_new_tokens=self.max_new_tokens)
+        generated_text = self.tokenizer.decode(outputs[0])
+        generated_text = generated_text.replace("<s> ", "").replace("</s>", "")[len(self.formatted_message):]
+        self.finished.emit(generated_text)
 
 
 class PetalsServiceMonitor(QMainWindow):
@@ -114,6 +164,8 @@ class PetalsServiceMonitor(QMainWindow):
             "padding: 5px;"
             "border-radius: 5px;"
             "}"
+            "QComboBox { background-color: black; color: white; }"
+            "QComboBox QAbstractItemView { background-color: black; color: white; }"
             "QComboBox::drop-down {"
             "subcontrol-origin: padding;"
             "subcontrol-position: top right;"
@@ -123,7 +175,7 @@ class PetalsServiceMonitor(QMainWindow):
             "border-left-style: solid;"
             "border-top-right-radius: 5px;"
             "border-bottom-right-radius: 5px;"
-            "}"
+            "}"            
             "QLabel {"
             "color: white;"
             "}"
@@ -158,7 +210,9 @@ class PetalsServiceMonitor(QMainWindow):
 
     def create_settings_tab(self):
         settings_widget = QWidget()
-        settings_layout = QVBoxLayout()
+        settings_up_layout = QVBoxLayout()
+        settings_layout = QHBoxLayout()
+        settings_up_layout.addLayout(settings_layout)
 
         # Server Settings
         server_settings_group = QGroupBox("Server Settings")
@@ -211,9 +265,15 @@ class PetalsServiceMonitor(QMainWindow):
         # Inference Settings
         inference_settings_group = QGroupBox("Inference Settings")
         inference_settings_layout = QVBoxLayout()
+        self.text_gen_template_label = QLabel("Text generation template")
+        self.text_gen_template_text = QTextEdit(self.config["generation_template"])
+        inference_settings_layout.addWidget(self.text_gen_template_label)
+        inference_settings_layout.addWidget(self.text_gen_template_text)
 
-        self.link_label = QLineEdit("View Network Health on https://health.petals.dev/")
-        inference_settings_layout.addWidget(self.link_label)
+        self.text_gen_system_prompt_label = QLabel("System Prompt")
+        self.text_gen_system_prompt_text = QTextEdit(self.config["system_prompt"])
+        inference_settings_layout.addWidget(self.text_gen_system_prompt_label)
+        inference_settings_layout.addWidget(self.text_gen_system_prompt_text)
 
         self.max_new_tokens_label = QLabel("Max new tokens for inference:")
         self.max_new_tokens_input = QSpinBox()
@@ -242,9 +302,9 @@ class PetalsServiceMonitor(QMainWindow):
 
         settings_layout.addWidget(server_settings_group)
         settings_layout.addWidget(inference_settings_group)
-        settings_layout.addWidget(self.save_config_button)
+        settings_up_layout.addWidget(self.save_config_button)
         
-        settings_widget.setLayout(settings_layout)
+        settings_widget.setLayout(settings_up_layout)
         self.tab_widget.addTab(settings_widget, "Settings")
 
 
@@ -427,11 +487,11 @@ class PetalsServiceMonitor(QMainWindow):
             <head/>
             <body>
             <h1>Petals Service Monitor</h1>
-            <p>Welcome to the Petals Service Monitor, a versatile application for managing and interacting with machine learning models in a decentralized fashion on the petals peer to peer network.</p>
+            <p>Welcome to the Petals Service Monitor, a versatile application for managing and interacting with large language models (LLMs) in a decentralized fashion on the petals peer to peer network.</p>
             
             <h2>Features:</h2>
             <ul>
-                <li>Model Selection: Choose from a variety of pre-trained machine learning models.</li>
+                <li>Model Selection: Choose from a variety of pre-trained LLMS.</li>
                 <li>Server Configuration: Configure server settings, including node name, device selection, and authentication tokens.</li>
                 <li>Resource Monitoring: Keep an eye on CPU, memory, and GPU usage in real-time.</li>
                 <li>Text Generation: Generate responses from selected models based on user input.</li>
@@ -523,6 +583,10 @@ class PetalsServiceMonitor(QMainWindow):
 
         inference_dtype_id = self.inference_combo.currentIndex()
 
+        generation_template = self.text_gen_template_text.toPlainText().strip()
+        system_prompt = self.text_gen_system_prompt_text.toPlainText().strip()
+
+
         # Update the 'config' dictionary with the new values
         self.config.update({
             'node_name': node_name,
@@ -531,10 +595,12 @@ class PetalsServiceMonitor(QMainWindow):
             'token': token,
             'num_blocks': num_blocks,
             'inference_dtype_id': inference_dtype_id,
-            'max_new_tokens': max_new_tokens
+            'max_new_tokens': max_new_tokens,
+            'generation_template':generation_template,
+            'system_prompt':system_prompt
         })
 
-    def save_config(self):
+    def save_config(self, show_saved=True):
         """
         Save the current configuration settings to the 'config.yaml' file.
 
@@ -554,6 +620,9 @@ class PetalsServiceMonitor(QMainWindow):
             yaml.dump(self.config, config_file, default_flow_style=False)        
 
         print("Configuration saved")
+        if show_saved:
+            QMessageBox.information(None, "Information", "Configuration saved successfully")
+
 
 
     def load_models_from_yaml(self, file_path):
@@ -605,7 +674,7 @@ class PetalsServiceMonitor(QMainWindow):
             self.server_process.terminate()
             self.start_server_button.setText("Start Server")
         else:
-            self.save_config()
+            self.save_config(show_saved=False)
             selected_model_name = self.model_combo.currentText()
             selected_model = next((model for model in self.models if model["name"] == selected_model_name), None)
 
@@ -763,54 +832,6 @@ class PetalsServiceMonitor(QMainWindow):
         QCoreApplication.processEvents()
 
 
-    class GenerationThread(QThread):
-        """
-        A PyQt QThread class for background text generation.
-
-        This class inherits from QThread and is designed to run text generation in the background. It takes a pre-trained
-        model, a tokenizer, user input prompt, a formatted message, and a maximum number of new tokens to generate.
-
-        Attributes:
-            finished (pyqtSignal): A PyQt signal emitted when text generation is completed, carrying the generated text.
-
-        """
-
-        finished = pyqtSignal(str)
-
-        def __init__(self, model, tokenizer, user_prompt, formatted_message, max_new_tokens):
-            """
-            Initialize a GenerationThread instance.
-
-            Args:
-                model: The pre-trained language model for text generation.
-                tokenizer: The tokenizer for tokenizing input text.
-                user_prompt (str): The user's input prompt for text generation.
-                formatted_message (str): The formatted message that includes system and user prompts.
-                max_new_tokens (int): The maximum number of new tokens to generate.
-
-            """
-            super().__init__()
-            self.model = model
-            self.tokenizer = tokenizer
-            self.user_prompt = user_prompt
-            self.formatted_message = formatted_message
-            self.max_new_tokens = max_new_tokens
-
-        def run(self):
-            """
-            Execute the text generation process in a background thread.
-
-            This method performs the text generation process using the provided model, tokenizer, user input, formatted
-            message, and maximum number of tokens. It emits the 'finished' signal with the generated text when the
-            generation is completed.
-
-            """
-            # Generate response in a background thread
-            inputs = self.tokenizer(self.formatted_message, return_tensors="pt")["input_ids"]
-            outputs = self.model.generate(inputs, max_new_tokens=self.max_new_tokens)
-            generated_text = self.tokenizer.decode(outputs[0])
-            generated_text = generated_text.replace("<s> ", "").replace("</s>", "")[len(self.formatted_message):]
-            self.finished.emit(generated_text)
 
 
 if __name__ == "__main__":
