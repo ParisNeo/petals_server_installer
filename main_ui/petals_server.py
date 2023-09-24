@@ -114,6 +114,9 @@ class PetalsServiceMonitor(QMainWindow):
             "QLabel {"
             "color: white;"
             "}"
+            "QTabWidget::pane { background-color: #333; }"
+            "QTabBar::tab { background-color: #555; color: white; }"
+            "QTabBar::tab:selected { background-color: #777; }"
         )
         self.setStyleSheet(main_window_stylesheet)        
 
@@ -184,22 +187,6 @@ class PetalsServiceMonitor(QMainWindow):
         settings_layout.addWidget(self.num_blocks_entry)
         
         # Add an "Update Usage" button
-
-        buttons_layout = QHBoxLayout()
-        self.save_config_button = QPushButton("Save config")
-        self.save_config_button.clicked.connect(self.save_config)
-        buttons_layout.addWidget(self.save_config_button)   
-
-        self.update_usage_button = QPushButton("Update Usage")
-        self.update_usage_button.clicked.connect(self.update_resource_info)
-        buttons_layout.addWidget(self.update_usage_button)        
-
-        self.start_server_button = QPushButton("Start Server")
-        self.start_server_button.clicked.connect(self.start_server)
-        buttons_layout.addWidget(self.start_server_button)
-
-        settings_layout.addLayout(buttons_layout)
-
         self.link_label = QLineEdit("View Network Health on https://health.petals.dev/")
         settings_layout.addWidget(self.link_label)
 
@@ -225,6 +212,10 @@ class PetalsServiceMonitor(QMainWindow):
         settings_layout.addWidget(self.inference_label)
         settings_layout.addWidget(self.inference_combo)
 
+        self.save_config_button = QPushButton("Save config")
+        self.save_config_button.clicked.connect(self.save_config)
+        settings_layout.addWidget(self.save_config_button)   
+
 
         settings_widget.setLayout(settings_layout)
         self.tab_widget.addTab(settings_widget, "Settings")
@@ -234,6 +225,9 @@ class PetalsServiceMonitor(QMainWindow):
         server_output_widget = QWidget()
         server_output_layout = QVBoxLayout()
 
+        self.start_server_button = QPushButton("Start Server")
+        self.start_server_button.clicked.connect(self.start_server)
+        server_output_layout.addWidget(self.start_server_button)
 
         self.stdout_label = QLabel("Server Output:")
         self.stdout_text = QTextEdit()
@@ -255,6 +249,10 @@ class PetalsServiceMonitor(QMainWindow):
     def create_resources_tab(self):
         resources_widget = QWidget()
         resources_layout = QVBoxLayout()
+
+        self.update_usage_button = QPushButton("Update Usage")
+        self.update_usage_button.clicked.connect(self.update_resource_info)
+        resources_layout.addWidget(self.update_usage_button)        
 
         self.resource_info_label = QLabel("Resource Usage:")
         self.resource_info = QTextEdit()
