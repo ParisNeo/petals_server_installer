@@ -191,7 +191,7 @@ class PetalsServiceMonitor(QMainWindow):
         left_layout.addWidget(self.max_new_tokens_input)
 
         # Add QComboBox for inference type selection
-        self.inference_type_label = QLabel("Inference data type:")
+        self.inference_label = QLabel("Inference data type:")
         self.inference_combo = QComboBox()
         for dtype_ in str_dtypes:
             self.inference_combo.addItem(dtype_)
