@@ -27,6 +27,7 @@ from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEngineSettings
 
 import torch
 
+# Helper constants and functions ============================================
 # The data types that can be used for inference 
 dtypes = [
     torch.float16,
@@ -37,7 +38,15 @@ str_dtypes = [
     "float32"
 ]
 
-
+# Function to disable all child widgets of a QGroupBox
+def disableGroupBoxContent(group_box):
+    for widget in group_box.findChildren(QWidget):
+        widget.setEnabled(False)
+# Function to enable all child widgets of a QGroupBox
+def enableGroupBoxContent(group_box):
+    for widget in group_box.findChildren(QWidget):
+        widget.setEnabled(True)
+# Generation Thread ===============================================
 class GenerationThread(QThread):
     """
     A PyQt QThread class for background text generation.
@@ -87,7 +96,7 @@ class GenerationThread(QThread):
         generated_text = generated_text.replace("<s> ", "").replace("</s>", "")[len(self.formatted_message):]
         self.finished.emit(generated_text)
 
-
+# Main class ============================================================
 class PetalsServiceMonitor(QMainWindow):
     """
     Petals Service Monitor
@@ -216,6 +225,7 @@ class PetalsServiceMonitor(QMainWindow):
 
         # Server Settings
         server_settings_group = QGroupBox("Server Settings")
+        self.server_settings_group = server_settings_group
         server_settings_layout = QVBoxLayout()
 
         self.model_label = QLabel("Select Model:")
@@ -668,6 +678,7 @@ class PetalsServiceMonitor(QMainWindow):
 
         """
         if self.start_server_button.text() == "Stop Server":
+            enableGroupBoxContent(self.server_settings_group)
             self.model = None
             self.input_prompt.setEnabled(False)
             self.generate_button.setEnabled(False)
@@ -675,6 +686,7 @@ class PetalsServiceMonitor(QMainWindow):
             self.start_server_button.setText("Start Server")
         else:
             self.save_config(show_saved=False)
+            disableGroupBoxContent(self.server_settings_group)
             selected_model_name = self.model_combo.currentText()
             selected_model = next((model for model in self.models if model["name"] == selected_model_name), None)
 
