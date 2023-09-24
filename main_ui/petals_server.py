@@ -12,7 +12,7 @@ import subprocess
 import psutil
 import yaml
 from pathlib import Path
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox, QTextEdit, QSplitter,  QSpinBox
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox, QTextEdit, QSplitter,  QSpinBox, QTabWidget
 from PyQt5.QtGui import QTextCursor, QTextOption, QFont
 from PyQt5.QtCore import QProcess, Qt
 
@@ -22,6 +22,8 @@ from PyQt5.QtCore import QCoreApplication
 
 from PyQt5.QtCore import QThread, pyqtSignal
 import torch
+
+# The data types that can be used for inference 
 dtypes = [
     torch.float16,
     torch.float32
@@ -30,6 +32,8 @@ str_dtypes = [
     "float16",
     "float32"
 ]
+
+
 class PetalsServiceMonitor(QMainWindow):
     """
     Petals Service Monitor
@@ -55,8 +59,16 @@ class PetalsServiceMonitor(QMainWindow):
         """        
         super().__init__()
 
+        # Load configuration
         self.config = self.get_config()
+
+        # Load the list of models from a YAML file
+        self.models = self.load_models_from_yaml("models.yaml")
+
+        # Initialize model to None for inference
         self.model = None
+
+        # No generation thread yet
         self.generation_thread = None
 
         self.setWindowTitle("Petals Service monitor UI")
@@ -110,11 +122,22 @@ class PetalsServiceMonitor(QMainWindow):
 
         self.layout = QHBoxLayout(self.central_widget)
 
-        # Left side layout for input widgets
-        left_layout = QVBoxLayout()
+        # Create a QTabWidget to organize the interface into tabs
+        self.tab_widget = QTabWidget()
 
-        # Load the list of models from a YAML file
-        self.models = self.load_models_from_yaml("models.yaml")
+        # Create tabs and add them to the tab widget
+        self.create_server_output_tab()
+        self.create_resources_tab()
+        self.create_settings_tab()
+        self.create_text_generation_tab()
+
+        # Add the tab widget to the layout
+        self.layout.addWidget(self.tab_widget)
+
+    def create_settings_tab(self):
+        settings_widget = QWidget()
+        settings_layout = QVBoxLayout()
+
 
         # Add QComboBox for model selection
         self.model_label = QLabel("Select Model:")
@@ -125,14 +148,14 @@ class PetalsServiceMonitor(QMainWindow):
             self.model_combo.setCurrentIndex(self.config['model_id'])
         except:
             print("Couldn't set model id")
-        left_layout.addWidget(self.model_label)
-        left_layout.addWidget(self.model_combo)
+        settings_layout.addWidget(self.model_label)
+        settings_layout.addWidget(self.model_combo)
 
         self.node_name_label = QLabel("Node Name:")
         self.node_name_entry = QLineEdit()
         self.node_name_entry.setText(self.config['node_name'])
-        left_layout.addWidget(self.node_name_label)
-        left_layout.addWidget(self.node_name_entry)
+        settings_layout.addWidget(self.node_name_label)
+        settings_layout.addWidget(self.node_name_entry)
 
         # Detect available GPU devices and add them to the QComboBox
         self.device_label = QLabel("Select Device:")
@@ -143,22 +166,22 @@ class PetalsServiceMonitor(QMainWindow):
         for i, device in enumerate(available_devices):
             self.device_combo.addItem(device)
             self.devices.append(f"cuda:{i}")
-        left_layout.addWidget(self.device_label)
-        left_layout.addWidget(self.device_combo)
+        settings_layout.addWidget(self.device_label)
+        settings_layout.addWidget(self.device_combo)
         print(f'using device {self.config["device"]}')
         self.device_combo.setCurrentIndex(self.config["device"])
 
         # Token entry field
         self.token_label = QLabel("Token (if required):")
         self.token_entry = QLineEdit()
-        left_layout.addWidget(self.token_label)
-        left_layout.addWidget(self.token_entry)
+        settings_layout.addWidget(self.token_label)
+        settings_layout.addWidget(self.token_entry)
         # Num Blocks entry field for CPU
         self.num_blocks_label = QLabel("Num Blocks (the number of blocks to serve, -1 for auto):")
         self.num_blocks_entry = QLineEdit()
         self.num_blocks_entry.setText(str(self.config['num_blocks']))
-        left_layout.addWidget(self.num_blocks_label)
-        left_layout.addWidget(self.num_blocks_entry)
+        settings_layout.addWidget(self.num_blocks_label)
+        settings_layout.addWidget(self.num_blocks_entry)
         
         # Add an "Update Usage" button
 
@@ -175,10 +198,10 @@ class PetalsServiceMonitor(QMainWindow):
         self.start_server_button.clicked.connect(self.start_server)
         buttons_layout.addWidget(self.start_server_button)
 
-        left_layout.addLayout(buttons_layout)
+        settings_layout.addLayout(buttons_layout)
 
         self.link_label = QLineEdit("View Network Health on https://health.petals.dev/")
-        left_layout.addWidget(self.link_label)
+        settings_layout.addWidget(self.link_label)
 
         self.max_new_tokens_label = QLabel("Max new tokens for inference:")
         # Create a QSpinBox widget
@@ -187,8 +210,8 @@ class PetalsServiceMonitor(QMainWindow):
         self.max_new_tokens_input.setMaximum(16384)  # Set maximum value
         self.max_new_tokens_input.setValue(self.config["max_new_tokens"])
 
-        left_layout.addWidget(self.max_new_tokens_label)
-        left_layout.addWidget(self.max_new_tokens_input)
+        settings_layout.addWidget(self.max_new_tokens_label)
+        settings_layout.addWidget(self.max_new_tokens_input)
 
         # Add QComboBox for inference type selection
         self.inference_label = QLabel("Inference data type:")
@@ -199,9 +222,39 @@ class PetalsServiceMonitor(QMainWindow):
             self.inference_combo.setCurrentIndex(self.config['inference_dtype_id'])
         except:
             print("Couldn't set inference id")
-        left_layout.addWidget(self.inference_label)
-        left_layout.addWidget(self.inference_combo)
+        settings_layout.addWidget(self.inference_label)
+        settings_layout.addWidget(self.inference_combo)
 
+
+        settings_widget.setLayout(settings_layout)
+        self.tab_widget.addTab(settings_widget, "Settings")
+
+
+    def create_server_output_tab(self):
+        server_output_widget = QWidget()
+        server_output_layout = QVBoxLayout()
+
+
+        self.stdout_label = QLabel("Server Output:")
+        self.stdout_text = QTextEdit()
+        self.stdout_text.setReadOnly(True)
+        monospaced_font = QFont("Courier New", 10)  # Adjust the font and size as needed
+        self.stdout_text.setFont(monospaced_font)
+        # Disable text wrapping
+        self.stdout_text.setLineWrapMode(QTextEdit.NoWrap)
+        # Enable horizontal scrollbar as needed
+        self.stdout_text.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self.stdout_text.setWordWrapMode(QTextOption.NoWrap)
+
+        server_output_layout.addWidget(self.stdout_label)
+        server_output_layout.addWidget(self.stdout_text)
+
+        server_output_widget.setLayout(server_output_layout)
+        self.tab_widget.addTab(server_output_widget, "Server Output")
+
+    def create_resources_tab(self):
+        resources_widget = QWidget()
+        resources_layout = QVBoxLayout()
 
         self.resource_info_label = QLabel("Resource Usage:")
         self.resource_info = QTextEdit()
@@ -215,32 +268,22 @@ class PetalsServiceMonitor(QMainWindow):
         self.resource_info.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.resource_info.setWordWrapMode(QTextOption.NoWrap)
 
-        left_layout.addWidget(self.resource_info_label)
-        left_layout.addWidget(self.resource_info)
+        resources_layout.addWidget(self.resource_info_label)
+        resources_layout.addWidget(self.resource_info)
 
-        # Right side layout for server output
-        right_layout = QVBoxLayout()
+        resources_widget.setLayout(resources_layout)
+        self.tab_widget.addTab(resources_widget, "Resources")
 
-        self.stdout_label = QLabel("Server Output:")
-        self.stdout_text = QTextEdit()
-        self.stdout_text.setReadOnly(True)
-        monospaced_font = QFont("Courier New", 10)  # Adjust the font and size as needed
-        self.stdout_text.setFont(monospaced_font)
-        # Disable text wrapping
-        self.stdout_text.setLineWrapMode(QTextEdit.NoWrap)
-        # Enable horizontal scrollbar as needed
-        self.stdout_text.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
-        self.stdout_text.setWordWrapMode(QTextOption.NoWrap)
-
-        right_layout.addWidget(self.stdout_label)
-        right_layout.addWidget(self.stdout_text)
+    def create_text_generation_tab(self):
+        text_generation_widget = QWidget()
+        text_generation_layout = QVBoxLayout()
 
         # QTextEdit for displaying model responses
         self.stdout_label = QLabel("Test client (Please wait till the server is fully loaded):")
         self.response_text = QTextEdit()
         self.response_text.setReadOnly(True)
-        right_layout.addWidget(self.stdout_label)
-        right_layout.addWidget(self.response_text)
+        text_generation_layout.addWidget(self.stdout_label)
+        text_generation_layout.addWidget(self.response_text)
 
         # QLineEdit for user input
         input_layout = QHBoxLayout()
@@ -254,25 +297,11 @@ class PetalsServiceMonitor(QMainWindow):
         self.generate_button.clicked.connect(self.generate_response)
         input_layout.addWidget(self.generate_button)
         self.generate_button.setEnabled(False)
-        right_layout.addLayout(input_layout)
+        text_generation_layout.addLayout(input_layout)
 
-        # Use a QSplitter to arrange the left and right layouts
-        splitter = QSplitter()
-        splitter.addWidget(QWidget())
-        splitter.addWidget(QWidget())
-        splitter.setSizes([self.width() // 3, self.width() * 2 // 3])
-        splitter.setStyleSheet("QSplitter::handle { background-color: lightgray; }")
-        splitter.setContentsMargins(0, 0, 0, 0)
+        text_generation_widget.setLayout(text_generation_layout)
+        self.tab_widget.addTab(text_generation_widget, "Text Generation")
 
-        left_widget = QWidget()
-        left_widget.setLayout(left_layout)
-        right_widget = QWidget()
-        right_widget.setLayout(right_layout)
-
-        splitter.widget(0).setLayout(left_layout)
-        splitter.widget(1).setLayout(right_layout)
-
-        self.layout.addWidget(splitter)
 
         self.server_process = None
 
