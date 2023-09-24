@@ -21,6 +21,9 @@ from petals import AutoDistributedModelForCausalLM
 from PyQt5.QtCore import QCoreApplication
 
 from PyQt5.QtCore import QThread, pyqtSignal
+from PyQt5.QtCore import QUrl
+from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEngineSettings
+
 import torch
 
 # The data types that can be used for inference 
@@ -143,8 +146,9 @@ class PetalsServiceMonitor(QMainWindow):
 
         # Create tabs and add them to the tab widget
         self.create_server_output_tab()
-        self.create_resources_tab()
+        self.create_web_browser_tab()
         self.create_settings_tab()
+        self.create_resources_tab()
         self.create_text_generation_tab()
 
         # Add the tab widget to the layout
@@ -275,6 +279,33 @@ class PetalsServiceMonitor(QMainWindow):
 
         server_output_widget.setLayout(server_output_layout)
         self.tab_widget.addTab(server_output_widget, "Server Output")
+
+    def create_web_browser_tab(self):
+        web_browser_widget = QWidget()
+        web_browser_layout = QVBoxLayout()
+
+        # Create a QWebEngineView widget for web content
+        self.web_view = QWebEngineView()
+        self.web_view.settings().setAttribute(QWebEngineSettings.LocalStorageEnabled, True)
+        self.web_view.settings().setAttribute(QWebEngineSettings.PluginsEnabled, True)
+
+        # Load the health page
+        self.web_view.setUrl(QUrl("https://health.petals.dev"))
+
+        # Create a refresh button
+        refresh_button = QPushButton("Refresh")
+        refresh_button.clicked.connect(self.refresh_web_page)
+
+        web_browser_layout.addWidget(self.web_view)
+        web_browser_layout.addWidget(refresh_button)
+
+        web_browser_widget.setLayout(web_browser_layout)
+        self.tab_widget.addTab(web_browser_widget, "Network health")
+
+    def refresh_web_page(self):
+        # Refresh the web page displayed in the QWebEngineView
+        self.web_view.reload()
+
 
     def create_resources_tab(self):
         """
