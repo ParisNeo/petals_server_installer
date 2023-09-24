@@ -583,24 +583,54 @@ class PetalsServiceMonitor(QMainWindow):
         QCoreApplication.processEvents()
 
 
-class GenerationThread(QThread):
-    finished = pyqtSignal(str)
+    class GenerationThread(QThread):
+        """
+        A PyQt QThread class for background text generation.
 
-    def __init__(self, model, tokenizer, user_prompt, formatted_message, max_new_tokens):
-        super().__init__()
-        self.model = model
-        self.tokenizer = tokenizer
-        self.user_prompt = user_prompt
-        self.formatted_message = formatted_message
-        self.max_new_tokens = max_new_tokens
+        This class inherits from QThread and is designed to run text generation in the background. It takes a pre-trained
+        model, a tokenizer, user input prompt, a formatted message, and a maximum number of new tokens to generate.
 
-    def run(self):
-        # Generate response in a background thread
-        inputs = self.tokenizer(self.formatted_message, return_tensors="pt")["input_ids"]
-        outputs = self.model.generate(inputs, max_new_tokens=self.max_new_tokens)
-        generated_text = self.tokenizer.decode(outputs[0])
-        generated_text = generated_text.replace("<s> ", "").replace("</s>", "")[len(self.formatted_message):]
-        self.finished.emit(generated_text)
+        Attributes:
+            finished (pyqtSignal): A PyQt signal emitted when text generation is completed, carrying the generated text.
+
+        """
+
+        finished = pyqtSignal(str)
+
+        def __init__(self, model, tokenizer, user_prompt, formatted_message, max_new_tokens):
+            """
+            Initialize a GenerationThread instance.
+
+            Args:
+                model: The pre-trained language model for text generation.
+                tokenizer: The tokenizer for tokenizing input text.
+                user_prompt (str): The user's input prompt for text generation.
+                formatted_message (str): The formatted message that includes system and user prompts.
+                max_new_tokens (int): The maximum number of new tokens to generate.
+
+            """
+            super().__init__()
+            self.model = model
+            self.tokenizer = tokenizer
+            self.user_prompt = user_prompt
+            self.formatted_message = formatted_message
+            self.max_new_tokens = max_new_tokens
+
+        def run(self):
+            """
+            Execute the text generation process in a background thread.
+
+            This method performs the text generation process using the provided model, tokenizer, user input, formatted
+            message, and maximum number of tokens. It emits the 'finished' signal with the generated text when the
+            generation is completed.
+
+            """
+            # Generate response in a background thread
+            inputs = self.tokenizer(self.formatted_message, return_tensors="pt")["input_ids"]
+            outputs = self.model.generate(inputs, max_new_tokens=self.max_new_tokens)
+            generated_text = self.tokenizer.decode(outputs[0])
+            generated_text = generated_text.replace("<s> ", "").replace("</s>", "")[len(self.formatted_message):]
+            self.finished.emit(generated_text)
 
 
 if __name__ == "__main__":
