@@ -208,7 +208,9 @@ class PetalsServiceMonitor(QMainWindow):
 
     def create_settings_tab(self):
         settings_widget = QWidget()
+        settings_up_layout = QHBoxLayout()
         settings_layout = QHBoxLayout()
+        settings_up_layout.addLayout(settings_layout)
 
         # Server Settings
         server_settings_group = QGroupBox("Server Settings")
@@ -289,9 +291,9 @@ class PetalsServiceMonitor(QMainWindow):
 
         settings_layout.addWidget(server_settings_group)
         settings_layout.addWidget(inference_settings_group)
-        settings_layout.addWidget(self.save_config_button)
+        settings_up_layout.addWidget(self.save_config_button)
         
-        settings_widget.setLayout(settings_layout)
+        settings_widget.setLayout(settings_up_layout)
         self.tab_widget.addTab(settings_widget, "Settings")
 
 
