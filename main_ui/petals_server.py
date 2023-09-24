@@ -598,7 +598,7 @@ class PetalsServiceMonitor(QMainWindow):
             'system_prompt':system_prompt
         })
 
-    def save_config(self):
+    def save_config(self, show_saved=True):
         """
         Save the current configuration settings to the 'config.yaml' file.
 
@@ -618,7 +618,8 @@ class PetalsServiceMonitor(QMainWindow):
             yaml.dump(self.config, config_file, default_flow_style=False)        
 
         print("Configuration saved")
-        QMessageBox.information(None, "Information", "Configuration saved successfully")
+        if show_saved:
+            QMessageBox.information(None, "Information", "Configuration saved successfully")
 
 
 
@@ -671,7 +672,7 @@ class PetalsServiceMonitor(QMainWindow):
             self.server_process.terminate()
             self.start_server_button.setText("Start Server")
         else:
-            self.save_config()
+            self.save_config(show_saved=False)
             selected_model_name = self.model_combo.currentText()
             selected_model = next((model for model in self.models if model["name"] == selected_model_name), None)
 
