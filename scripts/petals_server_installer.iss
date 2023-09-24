@@ -64,7 +64,7 @@ Filename: "{app}\requirements_installer.bat"; Flags: shellexec  waituntiltermina
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: shellexec postinstall skipifsilent
 
 [UninstallRun]
-Filename: "{app}\uninstall.bat"; Flags: shellexec; RunOnceId: 1
+Filename: "{app}\uninstall.bat"; Flags: shellexec  waituntilterminated
 
 [Icons]
 Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\logo.ico"

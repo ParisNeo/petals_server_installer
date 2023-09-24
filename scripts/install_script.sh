@@ -49,6 +49,7 @@ echo "Installing PyQt5"
 pip install PyQt5
 echo "Installing PyQt5 Web engine"
 pip install PyQtWebEngine
+sudo apt-get install libxcursor1
 
 echo cloning petals-server-installer
 cd ~
