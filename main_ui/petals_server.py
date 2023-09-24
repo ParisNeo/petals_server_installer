@@ -12,7 +12,7 @@ import subprocess
 import psutil
 import yaml
 from pathlib import Path
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox, QTextEdit, QSplitter,  QSpinBox, QTabWidget, QGroupBox, QTextBrowser
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox, QTextEdit, QSplitter,  QSpinBox, QTabWidget, QGroupBox, QTextBrowser, QMessageBox
 from PyQt5.QtGui import QTextCursor, QTextOption, QFont
 from PyQt5.QtCore import QProcess, Qt
 
@@ -618,6 +618,8 @@ class PetalsServiceMonitor(QMainWindow):
             yaml.dump(self.config, config_file, default_flow_style=False)        
 
         print("Configuration saved")
+        QMessageBox.information(None, "Information", "Configuration saved successfully")
+
 
 
     def load_models_from_yaml(self, file_path):
