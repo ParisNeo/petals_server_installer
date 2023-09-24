@@ -9,35 +9,48 @@
 ![GitHub contributors](https://img.shields.io/github/contributors/ParisNeo/petals_server_installer.svg)
 ![GitHub last commit](https://img.shields.io/github/last-commit/ParisNeo/petals_server_installer.svg)
 
-
-An installer tool for Petals, a decentralized text generation network, bundled with a PyQt5 application for monitoring server hardware and resource usage in a Windows Subsystem for Linux (WSL) environment.
+Petals Server Installer is a standalone installer for Petals, a decentralized text generation network. This tool simplifies the installation of a Petals server on various platforms. You can use it to set up a Petals server on Windows using Windows Subsystem for Linux (WSL) via the `petals-server.exe` or on Linux/macOS using the `install_script.sh`.
 
 ## Features
 
-- **Petals Server Node**: Run a Petals server node to offer your GPU power to the network.
-- **Resource Monitoring**: Monitor your shared resources with the collective mind of the network.
-- **Network Status**: Display the full status of the Petals network.
-- **Server Hardware Details**: View server hardware details, GPU status, CPU usage, and memory usage.
+- Easily configure and install a Petals server.
+- User-friendly graphical user interface (GUI) for server setup and inference testing.
+- Launch an Ubuntu environment for debugging or development on Windows.
+- Manage your Petals server settings through the `config.yaml` file.
 
 ## Installation
 
-You can install the Petals Network Installer and Server Info App using the installer available on the [GitHub Releases page](https://github.com/ParisNeo/petals_server_installer/releases).
+### Windows
 
-1. Visit the [Releases page](https://github.com/ParisNeo/petals_server_installer/releases) of this repository.
+From release page, download `petals-server.exe` and install it.
 
-2. Download the latest installer executable for your platform (e.g., `PetalsInstaller.exe`).
+After installation, you will have two new shortcuts:
 
-3. Run the installer and follow the on-screen instructions to install the application.
+1. **Load Ubuntu**: Opens an Ubuntu environment for debugging or development.
+2. **Load Petals Server UI**: Launches the Petals Server UI.
 
-## Usage
+### Linux/macOS
 
-1. Launch the installed application.
+From release page, download `install_script.exe` and run it with bash.
 
-2. Configure and run the Petals server node to contribute your GPU power to the Petals network.
+1. The installer creates a Conda environment named "petals" for you.
+2. Activate the environment with `conda activate petals`.
+3. Navigate to `~/petals_server_installer/main_ui/`.
+4. Start the Petals Server UI with `python3 petals_server.py`.
 
-3. Enter the node name in the provided field.
+## Configuration
 
-4. Click the "Update" button to fetch and display server information and network status.
+The `config.yaml` file, located at `~/petals_server_installer/main_ui/`, stores various configurations. Most settings can be conveniently modified through the UI. However, you can manually adjust the `prompt` and `conditioning_format` settings.
+
+### Manual Configuration (Linux/macOS)
+
+To modify the `config.yaml` file manually on Linux/macOS:
+
+1. Activate the Conda environment: `conda activate petals`.
+2. Navigate to the `main_ui` folder: `cd ~/petals_server_installer/main_ui/`.
+3. Use a text editor like `nano` to view and modify `config.yaml`.
+
+We hope you find Petals Server Installer helpful for setting up and managing your Petals server. Enjoy seamless text generation with Petals!
 
 ## Star History
 
