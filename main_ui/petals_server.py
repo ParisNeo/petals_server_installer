@@ -281,40 +281,46 @@ class PetalsServiceMonitor(QMainWindow):
         Load or create the configuration data for the Petals Service Monitor.
 
         This method checks if the 'config.yaml' file exists in the current folder. If it does not exist, it creates a
-        default configuration file. If it exists, it loads the configuration from the file and returns it.
+        default configuration file. If it exists, it loads the configuration from the file and returns it. Any missing keys
+        in the loaded configuration will be set to their default values for retro compatibility.
 
         Returns:
             dict: The configuration data loaded from the 'config.yaml' file or the default configuration data.
 
-        """        
-        # Define the YAML data structure
-        config_data = {
+        """
+        # Define the YAML data structure with default values
+        default_config_data = {
             'node_name': 'Unnamed',
             'device': 0,
             'model_id': 0,
             'token': '',
             'num_blocks': 4,
             'inference_dtype_id': 0,
-            'generation_template':"{system_prompt}### User: {message}\n\n### Assistant:\n",
-            "system_prompt":"Act as an AI assistant that is always ready to provide useful information and assistance. Help the user acheive his task.",
-            'max_new_tokens':1024
+            'generation_template': "{system_prompt}### User: {message}\n\n### Assistant:\n",
+            "system_prompt": "Act as an AI assistant that is always ready to provide useful information and assistance. Help the user acheive his task.",
+            'max_new_tokens': 1024
         }
 
         # Check if config.yaml exists in the current folder
         config_path = Path(__file__).resolve().parent / 'config.yaml'
 
         if not config_path.exists():
-            # If the file doesn't exist, create it with the specified structure
+            # If the file doesn't exist, create it with the default structure
             with open(config_path, 'w') as config_file:
-                yaml.dump(config_data, config_file, default_flow_style=False)
+                yaml.dump(default_config_data, config_file, default_flow_style=False)
             print("config.yaml file created.")
-        else:
-            # If the file exists, load its content
-            with open(config_path, 'r') as config_file:
-                config_data = yaml.load(config_file, Loader=yaml.FullLoader)
-                print("Previous config:")
-                print(config_data)
+
+        # Load the configuration from the file
+        with open(config_path, 'r') as config_file:
+            loaded_config_data = yaml.load(config_file, Loader=yaml.FullLoader)
+            print("Loaded config:")
+            print(loaded_config_data)
+
+        # Update any missing keys in the loaded configuration with default values
+        config_data = {**default_config_data, **loaded_config_data}
+
         return config_data
+
 
     def update_config_from_ui(self):
         """
@@ -371,6 +377,15 @@ class PetalsServiceMonitor(QMainWindow):
 
 
     def load_models_from_yaml(self, file_path):
+        """
+        Load models from a YAML file.
+
+        Args:
+            file_path (str): The path to the YAML file containing model data.
+
+        Returns:
+            list: A list of dictionaries representing models.
+        """
         try:
             with open(file_path, "r") as yaml_file:
                 models = yaml.safe_load(yaml_file)
@@ -379,6 +394,12 @@ class PetalsServiceMonitor(QMainWindow):
             return []
 
     def detect_gpu_devices(self):
+        """
+        Detect available GPU devices.
+
+        Returns:
+            list: A list of GPU device names.
+        """
         try:
             output = subprocess.check_output(["nvidia-smi", "--list-gpus"], universal_newlines=True)
             devices = [line.strip() for line in output.split('\n') if line.strip()]
@@ -387,14 +408,24 @@ class PetalsServiceMonitor(QMainWindow):
             return []
 
     def start_server(self):
-        if self.start_server_button.text()=="Stop Server":
+        """
+        Start or stop the Petals server.
+
+        If the server is running, this method stops it. If the server is not running, it starts the server with the
+        specified configuration.
+
+        This method reads the configuration from the UI components and constructs the command to start the server. It
+        also updates resource information and handles server termination.
+
+        """
+        if self.start_server_button.text() == "Stop Server":
             self.model = None
             self.input_prompt.setEnabled(False)
             self.generate_button.setEnabled(False)
             self.server_process.terminate()
             self.start_server_button.setText("Start Server")
         else:
-            self.save_config()            
+            self.save_config()
             selected_model_name = self.model_combo.currentText()
             selected_model = next((model for model in self.models if model["name"] == selected_model_name), None)
 
@@ -425,7 +456,7 @@ class PetalsServiceMonitor(QMainWindow):
             if selected_model.get("token"):
                 command.extend(["--token", token])
 
-            if num_blocks!='-1':
+            if num_blocks != '-1':
                 command.extend(["--num_blocks", num_blocks])
 
             print(f"Command : {command}")
@@ -442,13 +473,21 @@ class PetalsServiceMonitor(QMainWindow):
                 self.update_resource_info()
             except Exception as e:
                 self.resource_info.setText(f"Error starting the server: {str(e)}")
-            
+
             # Force the application to execute the event loop
             self.generate_button.setEnabled(True)
             self.input_prompt.setEnabled(True)
             QCoreApplication.processEvents()
 
+
     def update_resource_info(self):
+        """
+        Update and display resource usage information.
+
+        This method retrieves and displays information about CPU usage, memory usage, and GPU information (if available).
+        It updates the `resource_info` QTextEdit widget with the collected information.
+
+        """
         cpu_usage = psutil.cpu_percent()
         memory_info = psutil.virtual_memory()
         gpu_info = subprocess.check_output(["nvidia-smi"], universal_newlines=True)
@@ -461,17 +500,25 @@ class PetalsServiceMonitor(QMainWindow):
         self.resource_info.setText(resource_text)
 
     def update_stdout_text(self):
+        """
+        Update the standard output text in real-time.
+
+        This method is connected to the standard output of the server process. It reads the output data in real-time
+        and appends it to the `stdout_text` QTextEdit widget. It also handles carriage return characters to provide a
+        smooth and responsive display.
+
+        """
         data = self.server_process.readAll()
         text = data.data().decode("utf-8")
-        
+
         # Check if the text contains carriage return characters
         if '\r' in text:
             # Split the text by carriage returns
             lines = text.split('\r')
-            
+
             # Take the last line to update the existing line
             last_line = lines[-1]
-            
+
             # Update the last line in the QTextEdit
             cursor = self.stdout_text.textCursor()
             cursor.movePosition(QTextCursor.End)
@@ -484,6 +531,14 @@ class PetalsServiceMonitor(QMainWindow):
 
     # Create a function to generate and display responses
     def generate_response(self):
+        """
+        Generate and display responses based on user input.
+
+        This method handles the process of generating responses using the configured model. It retrieves user input,
+        formats it according to the specified template, and initiates the response generation process. The generated
+        response is then displayed in the `response_text` QTextEdit widget.
+
+        """
         self.generate_button.setEnabled(False)
         self.input_prompt.setEnabled(False)
 
@@ -511,11 +566,22 @@ class PetalsServiceMonitor(QMainWindow):
             self.response_text.setPlainText("Please enter a prompt.")
 
     def handle_generation_finished(self, generated_text):
+        """
+        Handle the completion of response generation.
+
+        This method is called when the response generation thread has completed. It updates the `response_text` QTextEdit
+        widget with the generated text, re-enables the generate button, and re-enables user input.
+
+        Args:
+            generated_text (str): The generated response text.
+
+        """
         self.response_text.setPlainText(generated_text)
         self.generate_button.setText("Generate Response")
         self.generate_button.setEnabled(True)
         self.input_prompt.setEnabled(True)
         QCoreApplication.processEvents()
+
 
 class GenerationThread(QThread):
     finished = pyqtSignal(str)
