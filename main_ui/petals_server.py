@@ -208,7 +208,7 @@ class PetalsServiceMonitor(QMainWindow):
 
     def create_settings_tab(self):
         settings_widget = QWidget()
-        settings_layout = QVBoxLayout()
+        settings_layout = QHBoxLayout()
 
         # Server Settings
         server_settings_group = QGroupBox("Server Settings")
@@ -261,9 +261,6 @@ class PetalsServiceMonitor(QMainWindow):
         # Inference Settings
         inference_settings_group = QGroupBox("Inference Settings")
         inference_settings_layout = QVBoxLayout()
-
-        self.link_label = QLineEdit("View Network Health on https://health.petals.dev/")
-        inference_settings_layout.addWidget(self.link_label)
 
         self.max_new_tokens_label = QLabel("Max new tokens for inference:")
         self.max_new_tokens_input = QSpinBox()
