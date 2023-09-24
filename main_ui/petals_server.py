@@ -720,7 +720,7 @@ class PetalsServiceMonitor(QMainWindow):
             if num_blocks != '-1':
                 command.extend(["--num_blocks", num_blocks])
 
-            print(f"Command : {command}")
+            print(f"Command : {' '.join(command)}")
             try:
                 # Start the server process and capture its stdout
                 self.server_process = QProcess()
