@@ -47,6 +47,8 @@ pip install --upgrade pyyaml
 
 echo "Installing PyQt5"
 pip install PyQt5
+echo "Installing PyQt5 Web engine"
+pip install PyQtWebEngine
 
 echo cloning petals-server-installer
 cd ~

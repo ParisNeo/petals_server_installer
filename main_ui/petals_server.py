@@ -12,9 +12,10 @@ import subprocess
 import psutil
 import yaml
 from pathlib import Path
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox, QTextEdit, QSplitter,  QSpinBox, QTabWidget, QGroupBox
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox, QTextEdit, QSplitter,  QSpinBox, QTabWidget, QGroupBox, QTextBrowser
 from PyQt5.QtGui import QTextCursor, QTextOption, QFont
 from PyQt5.QtCore import QProcess, Qt
+
 
 from transformers import AutoTokenizer
 from petals import AutoDistributedModelForCausalLM
@@ -150,6 +151,7 @@ class PetalsServiceMonitor(QMainWindow):
         self.create_settings_tab()
         self.create_resources_tab()
         self.create_text_generation_tab()
+        self.create_about_tab()
 
         # Add the tab widget to the layout
         self.layout.addWidget(self.tab_widget)
@@ -379,6 +381,34 @@ class PetalsServiceMonitor(QMainWindow):
 
 
         self.server_process = None
+
+
+    def create_about_tab(self):
+        about_widget = QWidget()
+        about_layout = QVBoxLayout()
+
+        # Create a QTextBrowser widget for rich text display
+        about_text = QTextBrowser()
+        about_text.setOpenExternalLinks(True)  # Enable opening links in a web browser
+
+        # Set the rich text content with information about your work and the author
+        about_text.setHtml(
+            """
+            <html>
+            <head/>
+            <body>
+            <p>This application was created by ParisNeo.</p>
+            <p>It is designed to showcase various features of PyQt5 and provide a user interface for interacting with machine learning models.</p>
+            <p>For more information and updates, please visit the <a href="https://github.com/ParisNeo/pyqt5-machine-learning-demo">GitHub repository</a>.</p>
+            </body>
+            </html>
+            """
+        )
+
+        about_layout.addWidget(about_text)
+        about_widget.setLayout(about_layout)
+        self.tab_widget.addTab(about_widget, "About")
+
 
     def get_config(self):
         """
