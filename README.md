@@ -31,7 +31,7 @@ After installation, you will have two new shortcuts:
 
 ### Linux/macOS
 
-From release page, download `install_script.exe` and run it with bash.
+From release page, download `install_script.sh` and run it with bash.
 
 1. The installer creates a Conda environment named "petals" for you.
 2. Activate the environment with `conda activate petals`.
