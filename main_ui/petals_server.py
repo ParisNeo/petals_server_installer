@@ -11,6 +11,7 @@ import sys
 import subprocess
 import psutil
 import yaml
+import gc
 from pathlib import Path
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox, QTextEdit, QSplitter,  QSpinBox, QTabWidget, QGroupBox, QTextBrowser, QMessageBox
 from PyQt5.QtGui import QTextCursor, QTextOption, QFont
@@ -683,7 +684,10 @@ class PetalsServiceMonitor(QMainWindow):
             self.input_prompt.setEnabled(False)
             self.generate_button.setEnabled(False)
             self.server_process.terminate()
+            self.server_process = None
+            self.server_process.waitForFinished()
             self.start_server_button.setText("Start Server")
+            gc.collect()
         else:
             self.save_config(show_saved=False)
             disableGroupBoxContent(self.server_settings_group)
